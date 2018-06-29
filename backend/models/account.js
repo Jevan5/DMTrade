@@ -2,7 +2,6 @@ var mongoose = require('mongoose');
 
 var accountSchema = mongoose.Schema(
     {
-        email: String,
         firstName: String,
         lastName: String,
         portfolios: [{type: mongoose.Schema.ObjectId, ref: 'Portfolios'}],
