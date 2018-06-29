@@ -6,7 +6,7 @@ const Accounts = require('models/account');
 const Securities = require('models/security');
 const Trades = require('models/trade');
 
-function checkToken(token){
+var checkToken = function(token){
     // 'Id-Token' header is missing, is not a string, or is less than 24 char
     if(!token || typeof(token) !== 'string' ||
         token.length < 24){

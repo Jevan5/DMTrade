@@ -1,6 +1,7 @@
-var express = require('express');
-var router = express.Router();
-var Accounts = require('../models/account');
+const express = require('express');
+const router = express.Router();
+
+const Accounts = require('../models/account');
 
 router.route('/')
     .post(function(req, res){
