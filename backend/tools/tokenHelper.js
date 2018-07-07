@@ -2,55 +2,22 @@ const crypto = require('crypto');
 const express = require('express');
 const router = express.Router();
 
-const Accounts = require('models/account');
-const Securities = require('models/security');
-const Trades = require('models/trade');
+const Account = require('../models/account');
+const Security = require('../models/security');
+const Trade = require('../models/trade');
 
-var checkToken = function(token){
-    // 'Id-Token' header is missing, is not a string, or is less than 24 char
-    if(!token || typeof(token) !== 'string' ||
-        token.length < 24){
-            return {
-                error: 'Properly formatted token header ' +
-                    'is required.'
-            }
+var checkCreds = function(security_id, hashPass){
+    // Format of security_id must be a string
+    if(!security_id || typeof(security_id) !== 'string'){
+        throw 'Improper security_id format.';
     }
-    var id = token.substring(0, 24);
-    var pass = token.substring(24);
-
-    var security;
-
-    return Securities.findById(id).then(function(theSecurity, err){
-        if(err){
-            return { error: err };
-        } else if(!theSecurity){
-            return { error: 'Invalid _id in token.' };
-        } else{
-            security = theSecurity;
-            const hash = crypto.createHash('sha256');
-            hash.update(pass + ecurity.salt);
-            const hashPass = hash.digest('binary');
-            if(hashPass === security.hashPass){
-                return Accounts.findById(security.account);
-            } else{
-                return { error: 'Incorrect password.' };
-            }
-        }
-    }).then(function(security, err){
-        // Error was caught above
-        if(security.error){
-            return { error: security.error };
-        } else if(err){
-            return { error: err };
-        } else{
-            return {
-                account: account,
-                security: security
-            }
-        }
-    });
+    // Format of hashPass must be a string
+    if(!hashPass || typeof(hashPass) !== 'string'){
+        throw 'Improper hashPass format.';
+    }
+    return Security.findById(security_id);
 }
 
 module.exports = {
-    checkToken: checkToken
+    checkCreds: checkCreds
 }

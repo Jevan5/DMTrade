@@ -1,12 +1,20 @@
 var mongoose = require('mongoose');
 
-var portfolioSchema = mongoose.Schema(
+const tradeFormat = {
+    price: Number,
+    quantity: Number,
+    symbol: String,
+    timeStamp: Date
+};
+
+var PortfolioSchema = mongoose.Schema(
     {
         account: {type: mongoose.Schema.ObjectId, ref: 'Accounts'},
+        buys: [tradeFormat],
         name: String,
-        trades: [{type: mongoose.Schema.ObjectId, ref: 'Trades'}]
+        sells: [tradeFormat]
     }
 );
 
 var Portfolio = mongoose.model('portfolio', PortfolioSchema);
-exports.Model = Portfolio;
+module.exports = Portfolio;

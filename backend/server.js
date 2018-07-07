@@ -4,7 +4,17 @@ var app = express();
 var bodyParser = require('body-parser');
 
 // import URL routes for HTTP API
-// var posts = require('./routes/posts');
+var accounts = require('./routes/accounts');
+var authenticate = require('./routes/authenticate');
+var portfolios = require('./routes/portfolios');
+var securities = require('./routes/securities');
+var trades = require('./routes/trades');
+
+// Parses application/json format
+app.use(bodyParser.json());
+
+// Parses application/x-www-form-urlencoded format
+app.use(bodyParser.urlencoded({ extended: true }));
 
 // middleware for testing, allowing full access to API from anywhere
 app.use(function(req, res, next) {
@@ -16,10 +26,14 @@ app.use(function(req, res, next) {
 });
 
 // use Express to handle our HTTP routes
-//app.use('/posts, posts');
+app.use('/accounts', accounts);
+app.use('/authenticate', authenticate);
+app.use('/portfolios', portfolios);
+app.use('/securities', securities);
+app.use('/trades', trades);
 
 // connect to MongoDB using mongoose
-mongoose.connect('mongodb://localhost/startUp', { useMongoClient: true });
+mongoose.connect('mongodb://localhost/startUp');
 
 app.listen(8080, function() {
 	console.log('Server listening on localhost:8080');
