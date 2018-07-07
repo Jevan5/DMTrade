@@ -16,13 +16,9 @@ var sendMail = function(recipient, subject, body){
         text: body
     };
 
-    return transporter.sendMail(mailOptions, function(error, info){
-        if(error){
-            throw error;
-        }
-    });
+    return transporter.sendMail(mailOptions);
 }
 
 module.exports = {
-    sendMail = sendMail
+    sendMail: sendMail
 }
