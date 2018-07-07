@@ -29,6 +29,9 @@ router.route('/')
             if(security.authentication && !security.hashPass){
                 throw 'Email has not been authenticated.';
             }
+            if(cryptoHelper.hash(req.get('hashPass'), security.salt) !== security.hashPass){
+                throw "Passwords don't match.";
+            }
             // User has not filled in personal information for account yet,
             // so account has not been created yet
             if(!security.account){
