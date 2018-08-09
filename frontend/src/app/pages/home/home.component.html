@@ -1,0 +1,6 @@
+<div *ngIf="!this.loginService.loggedIn">
+  Home for visitors.
+</div>
+<div *ngIf="this.loginService.loggedIn">
+  Home for users.
+</div>

@@ -1,0 +1,11 @@
+<div class="container">
+    <div *ngIf="this.portfolios.length == 0">
+        <h2>No portfolios.</h2>
+    </div>
+    <div *ngIf="this.portfolios.length != 0">
+        <ul>
+            <app-list-portfolio *ngFor="let portfolio of portfolios" [portfoliosComponent]="this" [portfolio]="portfolio"></app-list-portfolio>
+        </ul>
+    </div>
+    <app-post-portfolio-modal [portfoliosComponent]="this"></app-post-portfolio-modal>
+</div>

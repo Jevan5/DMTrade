@@ -1,0 +1,45 @@
+<div class="container">
+    Symbol: <input type="text" id="symbolToSearch" name="symbolToSearch" [(ngModel)]="model.symbolToSearch">
+    <button type="submit" (click)="searchClick()" class="btn btn-primary" id="searchBtn">Search</button>
+    <div *ngIf="this.error">
+        <div class="alert alert-danger" role="alert">
+            {{error}}
+        </div>
+    </div>
+    <h3 *ngIf="!chart && !loading">
+        Enter a symbol above to view the company's stock history.
+    </h3>
+    <app-loading-spinner *ngIf="loading"></app-loading-spinner>
+    <div [hidden]="!chart">
+        <br>
+        <div class="menu">
+            <button *ngIf="!beginAtZero" type="button" class="btn btn-danger" (click)="beginAtZeroClick()" id="yAxisBtn">
+                Begin Y Axis at 0
+            </button>
+            <button *ngIf="beginAtZero" type="button" class="btn btn-success" (click)="beginAtZeroClick()" id="yAxisBtn">
+                Begin Y Axis at 0
+            </button>
+            <div class="btn-group btn-group-toggle" ngbRadioGroup name="radioBasic" [(ngModel)]="model.mode">
+                <label ngbButtonLabel class="btn-primary" (click)="modeSelectionClick('oneDay')">
+                    <input ngbButton type="radio" [value]="'oneDay'"> 1 Day
+                </label>
+                <label ngbButtonLabel class="btn-primary" (click)="modeSelectionClick('oneMonth')">
+                    <input ngbButton type="radio" [value]="'oneMonth'"> 1 Month
+                </label>
+                <label ngbButtonLabel class="btn-primary" (click)="modeSelectionClick('threeMonths')">
+                    <input ngbButton type="radio" [value]="'threeMonths'"> 3 Months
+                </label>
+                <label ngbButtonLabel class="btn-primary" (click)="modeSelectionClick('sixMonths')">
+                    <input ngbButton type="radio" [value]="'sixMonths'"> 6 Months
+                </label>
+                <label ngbButtonLabel class="btn-primary" (click)="modeSelectionClick('oneYear')">
+                    <input ngbButton type="radio" [value]="'oneYear'"> 1 Year
+                </label>
+                <label ngbButtonLabel class="btn-primary" (click)="modeSelectionClick('fiveYears')">
+                    <input ngbButton type="radio" [value]="'fiveYears'"> 5 Years
+                </label>
+            </div>
+        </div>
+        <canvas id="canvas">{{ chart }}</canvas>
+    </div>
+</div>
