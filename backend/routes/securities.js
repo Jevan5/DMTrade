@@ -4,6 +4,7 @@ const crypto = require('crypto');
 const nodemailer = require('nodemailer');
 
 const cryptoHelper = require('../tools/cryptoHelper');
+const isValidId = require('../tools/idHelper').isValidId;
 const logErr = require('../tools/logHelper').logErr;
 const nodemailerHelper = require('../tools/nodemailerHelper');
 
@@ -28,12 +29,12 @@ router.route('/')
     .post(function(req, res){
         // Missing proper password format from client
         if(!req.body.hashPass || typeof(req.body.hashPass) !== 'string' || req.body.hashPass.length < 8){
-            res.send({ error: 'Password must be at least 8 characters.' });
+            res.status(400).send('Password must be at least 8 characters.');
             return;
         }
         // Missing proper email format from client
         if(!req.body.email || typeof(req.body.email) !== 'string'){
-            res.send({ error: 'Missing email.' });
+            res.status(400).send('Missing email.');
             return;
         }
         var email = req.body.email.toLowerCase();
@@ -44,7 +45,8 @@ router.route('/')
             if(securities.length === 1){
                 // They have also authenticated their email already
                 if(securities[0].passChange || !securities[0].authentication){
-                    throw 'Email already taken.';
+                    res.status(400).send('Email already taken.');
+                    throw '';
                 }
             }
             // Nobody has authenticated this email yet
@@ -79,8 +81,10 @@ router.route('/')
             // Once the entry has been saved, send a response to the client
             res.send({ message: 'Account registered, please check ' + email + ' for authentication link.' });
         }).catch(function(err){
-            logErr(err);
-            res.send({ error: err });
+            if(err){
+                logErr(err);
+                res.status(500).send(err);
+            }
         });
     });
 
@@ -146,12 +150,12 @@ router.route('/:email/:password')
     .get(function(req, res){
         // Improper email format
         if(typeof(req.params.email) !== 'string'){
-            res.send({ error: 'Email must be a string.' });
+            res.status(400).send({ error: 'Email must be a string.' });
             return;
         }
         // Improper password format
-        if(typeof(req.params.paassword) !== 'string'){
-            res.send({ error: 'Password must be a string.' });
+        if(typeof(req.params.password) !== 'string'){
+            res.status(400).send({ error: 'Password must be a string.' });
             return;
         }
         // Convert the email to lowercase before searching for it
@@ -159,29 +163,34 @@ router.route('/:email/:password')
         Security.find({ email: email }).then(function(securities){
             // No securitiy entries have a matching email
             if(securities.length === 0){
-                throw 'No account with matching email found.';
+                res.status(400).send('No account with matching email found.');
+                throw '';
             }
             // Many security entries exist with matching email, so none of 
             // them have been authenticated
             else if(securities.length > 1){
-                throw 'Email has not yet been authenticated.';
+                res.status(400).send('Email has not yet been authenticated.');
+                throw '';
             }
             // The one security entry with matching email has not been authenticated
             else if(securities[0].authentication && !securities[0].passChange){
-                throw 'Email has not yet been authenticated.';
+                res.status(400).send('Email has not yet been authenticated.');
+                throw '';
             }
             // If the hash of the password and salt do not match that stored with the security entry
             // with a matching email
             if(cryptoHelper.hash(req.params.password, securities[0].salt) !== securities[0].hashPass){
-                throw 'Invalid password.';
+                res.status(400).send('Invalid password.');
+                throw '';
             }
             // Hash of password and salt match the stored hashed password
             else{
                 res.send({ security: securities[0] });
             }
         }).catch(function(err){
-            logErr(err);
-            res.send({ error: err });
+            if(err){
+                res.status(500).send(err);
+            }
         });
     });
 

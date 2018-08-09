@@ -5,6 +5,7 @@ const nodemailer = require('nodemailer');
 
 const cryptoHelper = require('../tools/cryptoHelper');
 const logErr = require('../tools/logHelper').logErr;
+const isValidId = require('../tools/idHelper').isValidId;
 const nodemailerHelper = require('../tools/nodemailerHelper');
 
 const Account = require('../models/account');
@@ -20,27 +21,34 @@ router.route('/')
     .get(function(req, res){
         // Improper security_id header format
         if(!req.get('security_id') || typeof(req.get('security_id')) !== 'string'){
-            res.send({ error: 'security_id header must be a string.' });
+            res.status(400).send('security_id header must be a string.');
             return;
         }
         // Improper hashPass header format
         if(!req.get('hashPass') || typeof(req.get('hashPass')) !== 'string'){
-            res.send({ error: 'hashPass header must be a string.' });
+            res.status(400).send('hashPass header must be a string.');
+            return;
+        }
+        if(!isValidId(req.get('security_id'))){
+            res.status(400).send('security_id must have valid ID format.');
             return;
         }
         Security.findById(req.get('security_id')).then(function(security){
             if(!security){
-                throw 'Invalid security_id';
+                res.status(400).send('Invalid security_id.');
+                throw '';
             }
             // Account is not authenticated
             if(security.authentication && !security.passChange){
-                throw 'Email has not been authenticated.';
+                res.status(400).send('Email has not been authenticated.');
+                throw '';
             }
             // User has not filled in personal information for account yet,
             // so account has not been created yet
             if(!security.account){
-                throw 'Please login and fill in your personal information'
-                    + ' to finish creating your account.';
+                res.status(400).send('Please login and fill in your personal'
+                    + ' information to finish creating your account.');
+                throw '';
             }
             // Find the account associated with the security
             return Account.findById(security.account);
@@ -51,57 +59,62 @@ router.route('/')
             // Send the portfolio JSONS (containing buys and sells) to the client
             res.send({ portfolios: portfolios });
         }).catch(function(err){
-            logErr(err);
-            res.send({ error: err });
+            if(err){
+                logErr(err);
+                res.status(500).send(err);
+            }
         });
     })
     .post(function(req, res){
         // Improper security_id header format
         if(!req.get('security_id') || typeof(req.get('security_id')) !== 'string'){
-            res.send({ error: 'security_id header must be a string.' });
+            res.status(400).send('security_id header must be a string.');
             return;
         }
         // Improper hashPass header format
         if(!req.get('hashPass') || typeof(req.get('hashPass')) !== 'string'){
-            res.send({ error: 'hashPass header must be a string.' });
+            res.status(400).send('hashPass header must be a string.');
             return;
         }
         // Missing req.body.name for portfolio
         if(!req.body.name || typeof(req.body.name) !== 'string'){
-            res.send({ error: 'name must be a string.' });
+            res.status(400).send('name must be a string.');
+            return;
+        }
+        if(!isValidId(req.get('security_id'))){
+            res.status(400).send('security_id must have valid ID format.');
             return;
         }
         var account;
         var portfolio;
         Security.findById(req.get('security_id')).then(function(security){
             if(!security){
-                throw 'Invalid security_id';
+                res.status(400).send('Invalid security_id.');
+                throw '';
             }
             // Account is not authenticated
             if(security.authentication && !security.passChange){
-                throw 'Email has not been authenticated.';
+                res.status(400).send('Email has not been authenticated.');
+                throw '';
             }
             // User has not filled in personal information for account yet,
             // so account has not been created yet
             if(!security.account){
-                throw 'Please login and fill in your personal information'
-                    + ' to finish creating your account.';
+                res.status(400).send('Please login and fill in your personal'
+                    + ' information to finish creating your account.');
+                throw '';
             }
             // Find the account associated with the security
             return Account.findById(security.account);
         }).then(function(theAccount){
             account = theAccount;
-            // Don't allow multiple portfolios owned by 1 account to have
-            // the same name
-            var found = false;
-            for(var i = 0; i < account.portfolios.length; i++){
-                if(account.portfolios[i].name === req.body.name){
-                    found = true;
-                    break;
-                }
-            }
-            if(found){
-                throw 'Cannot have portfolios with duplicate names.';
+            return Portfolio.find({ name: req.body.name, account: account._id });
+        }).then(function(portfolios){
+            // Portfolio belongs to the account with the same name
+            if(portfolios.length > 0){
+                res.status(400).send('Cannot have portfolios with' +
+                ' duplicate names.');
+                throw '';
             }
             portfolio = new Portfolio();
             portfolio.account = account._id;
@@ -113,10 +126,12 @@ router.route('/')
             account.portfolios.push(portfolio._id);
             return account.save();
         }).then(function(portfolios){
-            res.send({ message: portfolio.name + ' portfolio created.' });
+            res.send({ portfolio: portfolio });
         }).catch(function(err){
-            logErr(err);
-            res.send({ error: err });
+            if(err){
+                logErr(err);
+                res.status(500).send(err);
+            }
         });
     });
 
@@ -125,28 +140,39 @@ router.route('/:portfolio_id')
     .delete(function(req, res){
         // Improper security_id header format
         if(!req.get('security_id') || typeof(req.get('security_id')) !== 'string'){
-            res.send({ error: 'security_id header must be a string.' });
+            res.status(400).send('security_id header must be a string.');
             return;
         }
         // Improper hashPass header format
         if(!req.get('hashPass') || typeof(req.get('hashPass')) !== 'string'){
-            res.send({ error: 'hashPass header must be a string.' });
+            res.status(400).send('hashPass header must be a string.');
+            return;
+        }
+        if(!isValidId(req.get('security_id'))){
+            res.status(400).send('security_id must have valid ID format.');
+            return;
+        }
+        if(!isValidId(req.params.portfolio_id)){
+            res.status(400).send('portfolio_id must have a valid ID format.');
             return;
         }
         var portfolio;
         Security.findById(req.get('security_id')).then(function(security){
             if(!security){
-                throw 'Invalid security_id';
+                res.status(400).send('Invalid security_id.');
+                throw '';
             }
             // Account is not authenticated
             if(security.authentication && !security.passChange){
-                throw 'Email has not been authenticated.';
+                res.status(400).send('Email has not been authenticated.');
+                throw '';
             }
             // User has not filled in personal information for account yet,
             // so account has not been created yet
             if(!security.account){
-                throw 'Please login and fill in your personal information'
-                    + ' to finish creating your account.';
+                res.status(400).send('Please login and fill in your personal' +
+                ' information to finish creating your account.');
+                throw '';
             }
             return Portfolio.findById(req.params.portfolio_id);
         }).then(function(thePortfolio){
@@ -164,10 +190,12 @@ router.route('/:portfolio_id')
                 });
             }
         }).then(function(){
-            res.send({ message: 'Portfolio removed.' });
+            res.send({ portfolio: portfolio });
         }).catch(function(err){
-            logErr(err);
-            res.send({ error: err });
+            if(err){
+                logErr(err);
+                res.status(500).send(err);
+            }
         });
     })
     // Changing information about a portfolio

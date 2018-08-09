@@ -1,0 +1,37 @@
+<div class="container">
+    <div class="container loginForm">
+        <h2>Login</h2>
+        <form>
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input type="text" class="form-control" id="email" name="email" required [(ngModel)]="model.email">
+            </div>
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" class="form-control" id="password" name="password" required [(ngModel)]="model.password">
+            </div>
+            <div class="form-group">
+                <button type="submit" (click)="loginClick()" class="btn btn-success">Login</button>
+            </div>
+        </form>
+    </div>
+    <br>
+    <div class="container registerForm">
+        <h2>Register</h2>
+        <form #loginForm="ngForm">
+            <div class="form-group">
+                <label for="newEmail">Email</label>                    
+                <input type="text" class="form-control" id="newEmail" name="newEmail" required [(ngModel)]="model.newEmail">
+            </div>
+            <div class="form-group">
+                <label for="newPassword">Password</label>
+                <input type="password" class="form-control" id="newPassword" name="newPassword" required [(ngModel)]="model.newPassword">
+            </div>
+            <div class="form-group">
+                <button type="submit" (click)="registerClick()" class="btn btn-success">Register</button>
+            </div>
+        </form>
+    </div>
+    <br>
+    <app-set-user-modal></app-set-user-modal>
+</div>
