@@ -655,9 +655,6 @@ export class PortfolioRevenue {
 
 interface PortfolioHistory {
   portfolio: Portfolio;
-  range: string;
-
-  constructor(portfolio: Portfolio, historicalValues: Map<string, [Date, number]>);
 }
 
 export class PortfolioValueHistory implements PortfolioHistory {
