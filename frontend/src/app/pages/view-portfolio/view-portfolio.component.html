@@ -1,1 +1,206 @@
-<h1>{{portfolio.name}}</h1>
+<div class="container">
+    <div *ngIf="!messages.loading">
+        <ngb-tabset><!-- Clickable menu to travel around the page -->
+            <ngb-tab title="Overview">
+                <ng-template ngbTabContent>
+                    <h1>
+                        {{portfolio.name}}
+                    </h1>
+                    <h3>
+                        Portfolio Value at Purchased Price:
+                        <div class="alert alert-success">
+                            ${{portfolioValue.atBid.sumOfValues}}
+                        </div>
+                    </h3>
+                    <h3>
+                        Portfolio Value at Current Price:
+                        <div class="alert alert-success">
+                            ${{portfolioValue.atMoment.sumOfValues}}
+                        </div>
+                    </h3>
+                    <h3>
+                        Portfolio Revenue at Sold Price:
+                        <div *ngIf="portfolioRevenue.atAsk.sumOfRevenues >= 0" class="alert alert-success">
+                            ${{portfolioRevenue.atAsk.sumOfRevenues}}
+                        </div>
+                        <div *ngIf="portfolioRevenue.atAsk.sumOfRevenues < 0" class="alert alert-danger">
+                            ${{-portfolioRevenue.atAsk.sumOfRevenues}}
+                        </div>
+                    </h3>
+                    <h3>
+                        Portfolio Revenue at Current Price:
+                        <div *ngIf="portfolioRevenue.atMoment.sumOfRevenues >= 0" class="alert alert-success">
+                            ${{portfolioRevenue.atMoment.sumOfRevenues}}
+                        </div>
+                        <div *ngIf="portfolioRevenue.atMoment.sumOfRevenues < 0" class="alert alert-danger">
+                            ${{-portfolioRevenue.atMoment.sumOfRevenues}}
+                        </div>
+                    </h3>
+                </ng-template>
+            </ngb-tab>
+
+            <ngb-tab title="History">
+                <ng-template ngbTabContent><!-- Contents of the History tab -->
+                    <h3>
+                        Portfolio Value History
+                    </h3>
+                    <h3>
+                        Portfolio Revenue History
+                    </h3>
+                </ng-template><!--/Contents of the History tab-->
+            </ngb-tab>
+
+            <ngb-tab title="Distribution">
+                <ng-template ngbTabContent><!-- Contents of Distribution tab -->
+                    <h3>
+                        Portfolio Value Distribution:
+                    </h3>
+                    <div *ngIf="portfolioValue.atBid.values.length === 0" class="alert alert-warning">
+                        You currently have no shares owned. You can purchase shares on the Browse Market page.
+                    </div>
+                    <div *ngIf="portfolioValue.atBid.values.length > 0">
+                        <canvas baseChart [datasets]="charts.valueDistribution.atBid.datasets" [labels]="charts.valueDistribution.atBid.labels" [options]="charts.valueDistribution.atBid.options" [chartType]="charts.valueDistribution.atBid.chartType"></canvas>
+                        <canvas baseChart [datasets]="charts.valueDistribution.atMoment.datasets" [labels]="charts.valueDistribution.atMoment.labels" [options]="charts.valueDistribution.atMoment.options" [chartType]="charts.valueDistribution.atMoment.chartType"></canvas>
+                        <table class="table table-bordered table-striped">
+                            <thead class="thead-dark">
+                                <tr>
+                                    <th *ngFor="let column of tables.valueDistribution.columns" scope="col">
+                                        {{column}}
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr *ngFor="let row of tables.valueDistribution.rows">
+                                    <td *ngFor="let cell of row">
+                                        {{cell}}
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <h3>
+                        Portfolio Revenue Distribution:
+                    </h3>
+                    <div *ngIf="charts.revenueDistribution.atAsk.profit.labels.length === 0" class="alert alert-warning">
+                        Only counting revenues after shares are sold, you have no net profits.
+                    </div>
+                    <div *ngIf="charts.revenueDistribution.atAsk.profit.labels.length > 0">
+                        <canvas baseChart [datasets]="charts.revenueDistribution.atAsk.profit.datasets" [labels]="charts.revenueDistribution.atAsk.profit.labels" [options]="charts.revenueDistribution.atAsk.profit.options" [chartType]="charts.revenueDistribution.atAsk.profit.chartType"></canvas>
+                    </div>
+                    <div *ngIf="charts.revenueDistribution.atAsk.loss.labels.length === 0" class="alert alert-warning">
+                        Only counting revenues after shares are sold, you have no net losses.
+                    </div>
+                    <div *ngIf="charts.revenueDistribution.atAsk.loss.labels.length > 0">
+                        <canvas baseChart [datasets]="charts.revenueDistribution.atAsk.loss.datasets" [labels]="charts.revenueDistribution.atAsk.loss.labels" [options]="charts.revenueDistribution.atAsk.loss.options" [chartType]="charts.revenueDistribution.atAsk.loss.chartType"></canvas>
+                    </div>
+                    <div *ngIf="charts.revenueDistribution.atMoment.profit.labels.length === 0" class="alert alert-warning">
+                        Counting revenues after shares are sold, and including revenues that would be earned by selling all outstanding shares right now, you have no net profits.
+                    </div>
+                    <div *ngIf="charts.revenueDistribution.atMoment.profit.labels.length > 0">
+                        <canvas baseChart [datasets]="charts.revenueDistribution.atMoment.profit.datasets" [labels]="charts.revenueDistribution.atMoment.profit.labels" [options]="charts.revenueDistribution.atMoment.profit.options" [chartType]="charts.revenueDistribution.atMoment.profit.chartType"></canvas>
+                    </div>
+                    <div *ngIf="charts.revenueDistribution.atMoment.loss.labels.length === 0" class="alert alert-warning">
+                        Counting revenues after shares are sold, and including revenues that would be earned by selling all outstanding shares right now, you have no let losses.
+                    </div>
+                    <div *ngIf="charts.revenueDistribution.atMoment.loss.labels.length > 0">
+                        <canvas baseChart [datasets]="charts.revenueDistribution.atMoment.loss.datasets" [labels]="charts.revenueDistribution.atMoment.loss.labels" [options]="charts.revenueDistribution.atMoment.loss.options" [chartType]="charts.revenueDistribution.atMoment.loss.chartType"></canvas>
+                    </div>
+                    <table class="table table-bordered table-striped">
+                        <thead class="thead-dark">
+                            <tr>
+                                <th *ngFor="let column of tables.revenueDistribution.columns" scope="col">
+                                    {{column}}
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr *ngFor="let row of tables.revenueDistribution.rows">
+                                <td *ngFor="let cell of row">
+                                    {{cell}}
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </ng-template><!--/Contents of Distribution tab -->
+            </ngb-tab>
+
+            <ngb-tab title="Transactions">
+                <ng-template ngbTabContent>
+                    <ul class="timeline">
+                        <li *ngFor="let t of transactions" [ngClass]="{'timeline-inverted': t.ask}">
+                            <!-- success if (sold stocks for more than you bought them for), danger if (sold stocks for less than you bought them for), else neutral -->
+                            <div class="timeline-badge" [ngClass]="{'success': (t.bid && t.bid.soldFor > (t.bid.quantity - t.bid.remaining) * t.bid.price)
+                                || (t.ask && t.ask.boughtFor < (t.ask.quantity * t.ask.price)),
+                                'danger': (t.bid && t.bid.soldFor < (t.bid.quantity - t.bid.remaining) * t.bid.price)
+                                || (t.ask && t.ask.boughtFor > (t.ask.quantity * t.ask.price))}">
+                                <i class="glyphicon" [ngClass]="{'glyphicon-ok': t.bid && t.bid.remaining === 0,
+                                    'glyphicon-option-horizontal': t.bid && t.bid.remaining !== 0,
+                                    'glyphicon-sort': t.ask}">
+                                </i>
+                            </div>
+                            <div class="timeline-panel">
+                                <div class="timeline-heading">
+                                    <h4 class="timeline-title">
+                                        <div *ngIf="t.bid">
+                                            {{t.bid.symbol}} Bid
+                                        </div>
+                                        <div *ngIf="t.ask">
+                                            {{t.ask.symbol}} Ask
+                                        </div>
+                                    </h4>
+                                    <p>
+                                        <small class="text-muted"><i class="glyphicon glyphicon-time"></i>
+                                            <div *ngIf="t.bid">
+                                                {{t.bid.timeStamp}}
+                                            </div>
+                                            <div *ngIf="t.ask">
+                                                {{t.ask.timeStamp}}
+                                            </div>
+                                        </small>
+                                    </p>
+                                </div>
+                                <div class="timeline-body">
+                                    <ul>
+                                        <li *ngIf="t.bid">
+                                            Quantity: {{t.bid.quantity}}
+                                        </li>
+                                        <li *ngIf="t.ask">
+                                            Quantity: {{t.ask.quantity}}
+                                        </li>
+                                        <li *ngIf="t.bid">
+                                            Price: {{t.bid.price}}
+                                        </li>
+                                        <li *ngIf="t.ask">
+                                            Price: {{t.ask.price}}
+                                        </li>
+                                        <li *ngIf="t.bid">
+                                            Remaining: {{t.bid.remaining}}
+                                        </li>
+                                        <li *ngIf="t.bid">
+                                            Sold For ($): {{t.bid.soldFor}}
+                                        </li>
+                                        <li *ngIf="t.ask">
+                                            Bought For ($): {{t.ask.boughtFor}}
+                                        </li>
+                                        <li *ngIf="t.bid">
+                                            Revenue ($): {{t.bid.soldFor - (t.bid.quantity - t.bid.remaining) * t.bid.price}}
+                                        </li>
+                                        <li *ngIf="t.ask">
+                                            Revenue ($): {{t.ask.quantity * t.ask.price - t.ask.boughtFor}}
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </li>
+                    </ul>
+                </ng-template>
+            </ngb-tab>
+        </ngb-tabset><!--/Clickable menu to travel around the page -->
+    </div>
+
+    <app-loading-spinner *ngIf="messages.loading" [loadingMessage]="messages.loading"></app-loading-spinner>
+
+    <div *ngIf="messages.error" class="alert alert-danger">
+        {{messages.error}}
+    </div>
+</div>

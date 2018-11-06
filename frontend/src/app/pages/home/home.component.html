@@ -1,6 +1,15 @@
-<div *ngIf="!this.loginService.loggedIn">
-  Home for visitors.
-</div>
-<div *ngIf="this.loginService.loggedIn">
-  Home for users.
+<div class="hero bg-img">
+  <div class="container">
+    <section id="main">
+      <h1>
+        DM Trade
+      </h1>
+      <h3>
+        You want to secure your future, and AI is the answer.
+      </h3>
+      <button type="button" class="btn btn-primary-outline" (click)="getStartedClick()">
+        Get Started
+      </button>
+    </section>
+  </div>
 </div>

@@ -1,3 +1,11 @@
 .loginHeader {
     float: right;
 }
+
+a {
+    cursor: pointer;
+}
+
+ul {
+    float: right;
+}

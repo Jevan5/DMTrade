@@ -1,0 +1,43 @@
+<ng-template #content let-c="close" let-d="dismiss">
+  <div class="modal-header">
+    <h4 class="modal-title" id="modal-basic-title">Sell {{symbol}} Stock</h4>
+    <button type="button" class="close" aria-label="Close" (click)="d('Cross click')">
+      <span aria-hidden="true">&times;</span>
+    </button>
+  </div>
+
+  <div class="modal-body">
+    <form *ngIf="!messages.loading && !messages.error">
+      <label for="price">Price</label>
+      <input type="text" class="form-control" id="price" name="price" disabled [(ngModel)]="model.price">
+      <label for="sharesOwned">Shares Owned</label>
+      <input *ngIf="!model.selectedPortfolioAndShares" type="text" class="form-control" disabled>
+      <input *ngIf="model.selectedPortfolioAndShares" type="text" class="form-control" id="sharesOwned" name="sharesOwned" disabled [(ngModel)]="model.selectedPortfolioAndShares.shares">
+      <label for="quantity">Quantity</label>
+      <input type="text" class="form-control" id="quantity" name="quantity" required [(ngModel)]="model.quantity">
+      <label for="portfolio">Portfolio</label>
+      <select class="form-control" [(ngModel)]="model.selectedPortfolioAndShares" name="model.selectedPortfolioAndShares">
+        <option *ngFor="let portfolioAndShares of portfoliosAndShares" [ngValue]="portfolioAndShares">
+          {{portfolioAndShares.portfolio.name}}
+        </option>
+      </select>
+      <div *ngIf="messages.warning" class="alert alert-warning">
+        {{messages.warning}}
+      </div>
+      <div *ngIf="messages.success" class="alert alert-success">
+        {{messages.success}}
+      </div>
+    </form>
+    <app-loading-spinner *ngIf="messages.loading" [loadingMessage]="messages.loading"></app-loading-spinner>
+    <div *ngIf="messages.error" class="alert alert-danger">
+      {{messages.error}}
+    </div>
+  </div>
+
+  <div class="modal-footer">
+    <button *ngIf="!messages.loading && !messages.error" type="button" class="btn btn-outline-success" (click)="saveClick()">Place Ask</button>
+    <button *ngIf="!messages.loading && messages.error" type="button" class="btn btn-btn-outline-success" (click)="c('Save Click')">Close</button>
+  </div>
+</ng-template>
+
+<button class="btn btn-success" (click)="sellClick()">Sell</button>

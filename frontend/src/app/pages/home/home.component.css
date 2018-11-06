@@ -1,0 +1,62 @@
+.hero.bg-img { 
+    background: url("../../../assets/images/network.png") no-repeat center center fixed; 
+    -webkit-background-size: cover;
+    -moz-background-size: cover;
+    -o-background-size: cover;
+    background-size: cover;
+}
+
+#main {
+    padding-top: 175px;
+    color: white;
+}
+
+#main h3 {
+    padding-top: 50px;
+}
+
+button{
+    background:#1AAB8A;
+    color:#fff;
+    border:none;
+    position:relative;
+    height:60px;
+    font-size:1.6em;
+    padding:0 2em;
+    cursor:pointer;
+    transition:800ms ease all;
+    outline:none;
+}
+
+#main button{
+    margin-top: 50px;
+    margin-bottom: 500px;
+}
+
+button:hover{
+    background:#fff;
+    color:#1AAB8A;
+}
+
+button:before,button:after{
+    content:'';
+    position:absolute;
+    top:0;
+    right:0;
+    height:2px;
+    width:0;
+    background: #1AAB8A;
+    transition:400ms ease all;
+}
+
+button:after{
+    right:inherit;
+    top:inherit;
+    left:0;
+    bottom:0;
+}
+
+button:hover:before,button:hover:after{
+    width:100%;
+    transition:800ms ease all;
+}

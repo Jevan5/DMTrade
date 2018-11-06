@@ -1,7 +1,7 @@
 import { Component, OnInit, ElementRef, ViewChild } from '@angular/core';
-import { LoginService } from '../../services/login/login.service';
+import { LoginService, RequestInfo, RequestResponse } from '../../services/login/login.service';
 import { PortfolioService } from '../../services/portfolio/portfolio.service';
-import { MarketService } from '../../services/market/market.service';
+import { MarketService, CompanyHistory } from '../../services/market/market.service';
 import { Config } from 'protractor';
 import { Chart } from 'chart.js';
 
@@ -11,25 +11,33 @@ import { Chart } from 'chart.js';
   styleUrls: ['./browse-market.component.css']
 })
 export class BrowseMarketComponent {
-  @ViewChild('canvas') canvas: ElementRef;
-  model = {
-    symbolToSearch: "",
-    mode: "threeMonths" // { oneDay, oneMonth, threeMonths, sixMonths, oneYear, fiveYears }
+  //@ViewChild('canvas') canvas: ElementRef;
+  model: {
+    symbolToSearch: string,
+    range: string
   };
   symbol: string;
   chartData;
   options;
   chart;
-  error: string;
-  loading: boolean;
+  errorMessage: string = '';
+  loading: boolean = false;
+  loadingMessage: string = '';
   beginAtZero: boolean = false;
   applicationError = 'Application error. Please try re-loading the page.';
 
   constructor(private marketService: MarketService, private portfolioService: PortfolioService,
-    private elementRef: ElementRef) {
-
+    private elementRef: ElementRef, private loginService: LoginService) {
+    this.model = {
+      symbolToSearch: '',
+      range: this.marketService.ranges[2]
+    };
   }
 
+  /*
+   * This function is called when the user presses Search. This
+   * starts the loading of the data for the graph.
+   */
   searchClick(){
     if(!this.model.symbolToSearch){
       return;
@@ -38,80 +46,64 @@ export class BrowseMarketComponent {
     this.loadData();
   }
 
+  /*
+   * Generates a graph for the searched stock symbol. Gathers
+   * data by querying the MarketService, and creates the graph
+   * based on the user's inputs.
+   */
   loadData(){
     this.loading = true;
+    this.loadingMessage = 'Loading market data...';
     this.chartData = null;
-    if(this.chart){
-      this.chart.destroy();
-    }
     this.chart = null;
-    this.error = null;
-    if(this.model.mode === 'oneDay'){
-      this.marketService.getOneDayMarket(this.symbol, this, this.loadDataCallback);
-    }
-    else if(this.model.mode === 'oneMonth'){
-      this.marketService.getMonthsMarket(this.symbol, 1, this, this.loadDataCallback);
-    }
-    else if(this.model.mode === 'threeMonths'){
-      this.marketService.getMonthsMarket(this.symbol, 3, this, this.loadDataCallback);
-    }
-    else if(this.model.mode === 'sixMonths'){
-      this.marketService.getMonthsMarket(this.symbol, 6, this, this.loadDataCallback);
-    }
-    else if(this.model.mode === 'oneYear'){
-      this.marketService.getMonthsMarket(this.symbol, 12, this, this.loadDataCallback);
-    }
-    else if(this.model.mode === 'twoYears'){
-      this.marketService.getMonthsMarket(this.symbol, 24, this, this.loadDataCallback);
-    }
-    else if(this.model.mode === 'fiveYears'){
-      this.marketService.getMonthsMarket(this.symbol, 60, this, this.loadDataCallback);
-    }
-    else{
-      this.error = this.applicationError;
+    this.errorMessage = '';
+    this.marketService.getMarket(this.symbol, this.model.range, new RequestInfo(0, this, (requestResponse: RequestResponse) => {
+      var self = requestResponse.requestInfo.self;
+      if(requestResponse.response.error){
+        self.errorMessage = requestResponse.response.error;
+        self.loading = false;
+        self.loadingMessage = '';
+        return;
+      }
+      if(requestResponse.response["Error Message"]){
+        self.errorMessage = 'Please enter a valid symbol.';
+        self.loading = false;
+        self.loadingMessage = '';
+        return;
+      }
+      if(self.errorMessage){
+        return;
+      }
+      var companyHistory: CompanyHistory = requestResponse.response;
+      self.prepareData(companyHistory);
+      self.displayGraph(self.chartData);
+    }));
+  }
+
+  displayGraph(chartData){
+    this.chart = null;
+    // If the chart is overwritten and only the beginAtZero is changed,
+    // ng2-chart does not recognize that it's changed, and does nothing.
+    // Need to set a timeout so that it clears the graph, then resets
+    // it with the proper beginAtZero value.
+    setTimeout(() => {
+      this.chart = chartData;
       this.loading = false;
-    }
-  }
-
-  loadDataCallback(self, response){
-    if(response.error){
-      self.error = response.error;
-      self.loading = false;
-      return;
-    }
-    if(response["Error Message"]){
-      self.error = 'Please enter a valid symbol.';
-      self.loading = false;
-      return;
-    }
-    self.chartData = self.prepareData(response);
-    self.displayGraph();
-  }
-
-  displayGraph(){
-    if(this.chart){
-      this.chart.destroy();
-    }
-    this.chart = new Chart('canvas', this.chartData);
-    this.loading = false;
+      this.loadingMessage = '';
+    }, 1);
   }
 
   /*
-    Generates chart data that can be used to create a chart.
-
-    Parameters:
-    data (Object): API response containing stock information
-
-    Returns:
-    Object: Object in the form acceptable to create a Chart object from
-  */
-  prepareData(data){
-    let chartData = {
-      type: 'line',
-      data: {
-        labels: [],
-        datasets: []
-      },
+   * Generates chart data that can be used to create a chart.
+   *
+   * @param {CompanyHistory} companyHistory: Historical data
+   * about the company to create the graph from.
+   */
+  prepareData(companyHistory: CompanyHistory) : void {
+    this.chartData = {
+      chartType: 'line',
+      datasets: [],
+      labels: [],
       options: {
         responsive: true,
         title: {
@@ -137,28 +129,28 @@ export class BrowseMarketComponent {
     // Setup the 4 datasets on the graph. Each dataset will
     // be a line on the graph. One for the opening, closing,
     // high, and low values of the day
-    chartData.data.datasets.push({
+    this.chartData.datasets.push({
       data: [],
       label: 'Open',
       borderColor: '#3e95cd',
       borderWidth: 2,
       fill: false
     });
-    chartData.data.datasets.push({
+    this.chartData.datasets.push({
       data: [],
       label: 'Close',
       borderColor: '#8e5ea2',
       borderWidth: 2,
       fill: false
     });
-    chartData.data.datasets.push({
+    this.chartData.datasets.push({
       data: [],
       label: 'High',
       borderColor: '#3cba9f',
       borderWidth: 2,
       fill: false
     });
-    chartData.data.datasets.push({
+    this.chartData.datasets.push({
       data: [],
       label: 'Low',
       borderColor: '#e8c3b9',
@@ -166,37 +158,39 @@ export class BrowseMarketComponent {
       fill: false
     });
     // Key used to create entries along the x-axis
-    let timeKey;
-    if(this.model.mode === 'oneDay'){
-      timeKey = 'minute';
-    }
-    else{
-      timeKey = 'date';
-    }
-    for(let i = 0; i < data.length; i++){
+    for(let i = 0; i < companyHistory.snapshots.length; i++){
       // For each entry, add the time label onto the x-axis
-      chartData.data.labels.push(data[i][timeKey]);
+      this.chartData.labels.push(companyHistory.snapshots[i].time);
       // For each dataset, plot the y-coordinate
-      chartData.data.datasets[0].data.push(parseFloat(data[i]['open']));
-      chartData.data.datasets[1].data.push(parseFloat(data[i]['close']));
-      chartData.data.datasets[2].data.push(parseFloat(data[i]['high']));
-      chartData.data.datasets[3].data.push(parseFloat(data[i]['low']));
+      this.chartData.datasets[0].data.push(companyHistory.snapshots[i].open);
+      this.chartData.datasets[1].data.push(companyHistory.snapshots[i].close);
+      this.chartData.datasets[2].data.push(companyHistory.snapshots[i].high);
+      this.chartData.datasets[3].data.push(companyHistory.snapshots[i].low);
     }
-
-    return chartData;
   }
 
+  /*
+   * This function is called when the user clicks Begin At Zero. It
+   * changes the scaling of the graph, and re-loads the graph.
+   */
   beginAtZeroClick(){
     // Already have chart's data, just need to re-load the graph
     // by changing the Y-axis
     this.loading = true;
+    this.loadingMessage = 'Calibrating graph...';
     this.beginAtZero = !this.beginAtZero;
     this.chartData.options.scales.yAxes[0].ticks.beginAtZero = this.beginAtZero;
-    this.displayGraph();
+    this.displayGraph(this.chartData);
   }
 
-  modeSelectionClick(mode){
-    this.model.mode = mode;
+  /*
+   * This function is called whenever the user presses a button
+   * to change the time interval for the graph.
+   * 
+   * @param {string} mode: Time interval for the graph.
+   */
+  modeSelectionClick(range: string){
+    this.model.range = range;
     this.loadData();
   }
 }
