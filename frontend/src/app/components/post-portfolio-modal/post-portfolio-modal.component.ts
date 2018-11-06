@@ -4,6 +4,7 @@ import { NgbModal, ModalDismissReasons } from '@ng-bootstrap/ng-bootstrap';
 import { Router } from '@angular/router';
 import { ViewChild } from '@angular/core';
 import { PortfolioService } from '../../services/portfolio/portfolio.service';
+import { RequestInfo, RequestResponse } from '../../services/login/login.service';
 
 @Component({
   selector: 'app-post-portfolio-modal',
@@ -17,6 +18,13 @@ export class PostPortfolioModalComponent {
     name: ''
   }
 
+  searchSeqNum: number = 0;
+  loading: boolean = false;
+  loadingMessage: string = '';
+  warningMessage: string = '';
+  successMessage: string = '';
+  errorMessage: string = '';
+
   constructor(private portfolioService: PortfolioService, private modalService: NgbModal,
     private router: Router) {
 
@@ -24,23 +32,52 @@ export class PostPortfolioModalComponent {
 
   // Displays the modal for creating a portfolio
   open(content){
+    this.loading = false;
+    this.loadingMessage = '';
+    this.warningMessage = '';
+    this.successMessage = '';
+    this.errorMessage = '';
+    this.model.name = '';
     this.modalService.open(content, { centered: true }).result.then((result) => {
-      // Name of the portfolio is not given
-      if(!this.model.name){
-        return;
-      }
-      // Call the portfolioService to create the portfolio
-      this.portfolioService.postPortfolio(this.model.name, this, this.postPortfolioCallback);
+
+    }, (reason) => {
+
     });
   }
 
-  // Function called after portfolioService has tried to create the portfolio
-  postPortfolioCallback(self, response){
-    // Error creating the portfolio
-    if(response.error){
-      alert(response.error);
+  /*
+   * This function is called when the user clicks the
+   * Save button in order to create the new portfolio.
+   */
+  saveClick(){
+    this.warningMessage = '';
+    this.successMessage = '';
+    if(!this.model.name){
+      this.warningMessage = 'Must enter a name.';
       return;
     }
+    this.loading = true;
+    this.loadingMessage = 'Posting portfolio...';
+    this.portfolioService.postPortfolio(this.model.name, new RequestInfo(0, this, this.postPortfolioCallback));
+  }
+
+  /*
+   * This function is called when the PortfolioService
+   * has a response for creating the portfolio.
+   * 
+   * @param {RequestResponse} requestResponse: Response
+   * from the PortfolioService for creating the Portfolio.
+   */
+  postPortfolioCallback(requestResponse: RequestResponse) : void {
+    var self = requestResponse.requestInfo.self;
+    self.loading = false;
+    self.loadingMessage = '';
+    // Error creating the portfolio
+    if(requestResponse.response.error){
+      self.errorMessage = requestResponse.response.error;
+      return;
+    }
+    self.successMessage = 'Portfolio created.';
     // Portfolio created, tell the portfolios component page to
     // reload it's portfolios
     self.portfoliosComponent.getPortfolios();

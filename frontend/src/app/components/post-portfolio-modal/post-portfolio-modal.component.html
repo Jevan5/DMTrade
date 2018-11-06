@@ -5,16 +5,32 @@
       <span aria-hidden="true">&times;</span>
     </button>
   </div>
+
   <div class="modal-body">
-    <form>
+    <form *ngIf="!loading && !errorMessage">
       <div class="form-group">
         <label for="name">Portfolio Name</label>
         <input type="text" class="form-control" id="name" name="name" required [(ngModel)]="model.name">
       </div>
+      <div *ngIf="warningMessage" class="alert alert-warning">
+        {{warningMessage}}
+      </div>
+      <div *ngIf="successMessage" class="alert alert-success">
+        {{successMessage}}
+      </div>
     </form>
+    <div *ngIf="errorMessage" class="alert alert-danger">
+      {{errorMessage}}
+    </div>
   </div>
+
   <div class="modal-footer">
-    <button type="button" class="btn btn-outline-success" (click)="c('Save click')">Save</button>
+    <button *ngIf="!loading && !errorMessage" type="button" class="btn btn-outline-success" (click)="saveClick()">
+      Save
+    </button>
+    <button *ngIf="!loading && errorMessage" type="button" class="btn btn-outline-success" (click)="c('Close')">
+      Close
+    </button>
   </div>
 </ng-template>
 

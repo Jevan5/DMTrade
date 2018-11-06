@@ -10,13 +10,14 @@ const nodemailerHelper = require('../tools/nodemailerHelper');
 
 const Account = require('../models/account');
 const Security = require('../models/security');
+const Portfolio = require('../models/portfolio');
 
 const ourEmail = 'DMTrade2877@gmail.com';
 const ourPass = 'HorseSpongeBikini';
 const ourService = 'gmail';
 
 router.route('/:portfolio_id')
-    // Buying or selling
+    // Bidding or asking
     .post(function(req, res){
         // Improper security_id header format
         if(!req.get('security_id') || typeof(req.get('security_id')) !== 'string'){
@@ -46,9 +47,9 @@ router.route('/:portfolio_id')
         }
         // Improper action format for trade
         if(!req.body.action || typeof(req.body.symbol) !== 'string'
-            || (req.body.action !== 'buy'
-            && req.body.action !== 'sell')){
-            res.status(400).send('action must be \'buy\' or \'sell\'.');
+            || (req.body.action !== 'bid'
+            && req.body.action !== 'ask')){
+            res.status(400).send("action must be 'bid' or 'ask'.");
             return;
         }
         if(!isValidId(req.get('security_id'))){
@@ -59,7 +60,12 @@ router.route('/:portfolio_id')
             res.status(400).send('portfolio_id must have valid ID format.');
             return;
         }
+
+        // Convert the symbol to all capital letters
+        req.body.symbol = req.body.symbol.toUpperCase();
+
         var trade;
+
         Security.findById(req.get('security_id')).then(function(security){
             if(!security){
                 res.status(400).send('Invalid security_id.');
@@ -89,37 +95,39 @@ router.route('/:portfolio_id')
             return Portfolio.findById(req.params.portfolio_id);
         }).then(function(portfolio){
             trade = {
-                price: req.body.price,
+                price: Math.round(req.body.price * 100) / 100,
                 quantity: req.body.quantity,
                 symbol: req.body.symbol,
                 timeStamp: new Date()
             };
-            // Trying to buy
-            if(req.body.action === 'buy'){
+            // Trying to bid
+            if(req.body.action === 'bid'){
                 trade.remaining = trade.quantity;
-                portfolio.buys.push(trade);
+                trade.soldFor = 0;
+                portfolio.bids.push(trade);
             }
-            // Trying to sell
+            // Trying to ask
             else{
+                trade.boughtFor = 0;
                 // How many shares are available to be sold
                 let availableToSell = 0;
                 let sufficient = true;
-                // Iterate over all the buys, in reverse order (don't have to
+                // Iterate over all the bids, in reverse order (don't have to
                 // iterate over the entire array most likely)
-                for(let i = portfolio.buys.length - 1; i >= 0; i--){
+                for(let i = portfolio.bids.length - 1; i >= 0; i--){
                     // Found an old purchase for the same stock
-                    if(portfolio.buys[i].symbol === trade.symbol){
+                    if(portfolio.bids[i].symbol === trade.symbol){
                         // The latest purchase has been sold, meaning
                         // there are no more sales that could be made.
                         // You obviously couldn't find enough
-                        if(portfolio.buys[i].remaining === 0){
+                        if(portfolio.bids[i].remaining === 0){
                             sufficient = false;
                             break;
                         }
                         else{
                             // You've found more shares that you can sell, still
                             // might need more though
-                            availableToSell += portfolio.buys[i].remaining;
+                            availableToSell += portfolio.bids[i].remaining;
                             // You've found enough, stop looking
                             if(availableToSell >= trade.quantity){
                                 break;
@@ -138,31 +146,36 @@ router.route('/:portfolio_id')
                 // Keep track of how many shares still need to be sold
                 // as we update the purchases' 'remaining' attribute
                 let remainingToSell = trade.quantity;
-                // Iterate over all the buys, in regular order, to sell
+                // Iterate over all the bids, in regular order, to sell
                 // them in a FIFO matter
-                for(let i = 0; i < portfolio.buys.length; i++){
+                for(let i = 0; i < portfolio.bids.length; i++){
+                    let bid = portfolio.bids[i];
                     // Found an old purchase for the same stock
-                    if(portfolio.buys[i].symbol === trade.symbol){
+                    if(bid.symbol === trade.symbol){
                         // This purchase has shares to be sold
-                        if(portfolio.buys[i].remaining > 0){
+                        if(bid.remaining > 0){
                             // This purchase can not fulfill the sale. Decrease
                             // the shares remaining to sell to complete the sale,
                             // and set the shares remaining of the purchase to 0
-                            if(portfolio.buys[i].remaining < remainingToSell){
-                                remainingToSell -= portfolio.buys[i].remaining;
-                                portfolio.buys[i].remaining = 0;
+                            if(bid.remaining < remainingToSell){
+                                bid.soldFor += bid.remaining * trade.price;
+                                trade.boughtFor += bid.remaining * bid.price;
+                                remainingToSell -= bid.remaining;
+                                bid.remaining = 0;
                             }
                             // This purchase has enough shares to complete the sale.
                             // Decrease the amount of shares remaining of the purchase,
                             // and complete the sale
                             else{
-                                portfolio.buys[i].remaining -= remainingToSell;
+                                bid.soldFor += remainingToSell * trade.price;
+                                trade.boughtFor += remainingToSell * bid.price;
+                                bid.remaining -= remainingToSell;
                                 break;
                             }
                         }
                     }
                 }
-                portfolio.sells.push(trade);
+                portfolio.asks.push(trade);
             }
             return portfolio.save();
         }).then(function(){
