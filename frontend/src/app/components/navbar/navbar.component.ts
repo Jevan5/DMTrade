@@ -1,7 +1,8 @@
 import { Component, OnInit } from '@angular/core';
-import { LoginService } from '../../services/login/login.service';
+import { LoginService, RequestInfo } from '../../services/login/login.service';
 import { PortfolioService } from '../../services/portfolio/portfolio.service';
 import { Config } from 'protractor';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-navbar',
@@ -10,8 +11,10 @@ import { Config } from 'protractor';
 })
 export class NavbarComponent {
   loginHeader;  // Displaying information about who's logged in
-
-  constructor(private loginService: LoginService, private portfolioService: PortfolioService) {
+  isNavbarOpen: boolean = false;
+  
+  constructor(private loginService: LoginService, private portfolioService: PortfolioService,
+    private router: Router) {
     this.loginService.loginObservable.subscribe((data: Config) => {
       // loginObservable gave information implying a logout
       if(!data || !data.security.account){
@@ -24,13 +27,29 @@ export class NavbarComponent {
     });
   }
 
-  // User pressed the logout button
-  logoutClick(){
-    // loginService handles navigating the user to the login page,
-    // don't need to do anything
-    this.loginService.logout(self, function(response){
-
-    });
+  toggleNavbar(){
+    this.isNavbarOpen = !this.isNavbarOpen;
   }
 
+  dmTradeClick(){
+    this.router.navigate(['']);
+  }
+
+  loginClick(){
+    this.router.navigate(['/login']);
+  }
+
+  browseMarketClick(){
+    this.router.navigate(['/browseMarket']);
+  }
+
+  logoutClick(){
+    this.loginService.logout(new RequestInfo(0, this, function(response, self){
+
+    }));
+  }
+
+  portfoliosClick(){
+    this.router.navigate(['/portfolios']);
+  }
 }

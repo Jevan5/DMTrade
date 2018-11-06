@@ -1,20 +1,31 @@
-<nav class="navbar navbar-default">
-    <div class="container-fluid">
-        <div>
-            <a class="navbar-brand" routerLink="">DMTrade</a>
-        </div>
-        <ul>
-            <li><a routerLink="/browseMarket">Browse Market</a></li>
-            <div *ngIf="!this.loginService.loggedIn">
-                <li><a routerLink="/login">Login</a></li>
-            </div>
-            <div *ngIf="this.loginService.loggedIn">
-                <li><a routerLink="/portfolios">Portfolios</a></li>
-                <li><a (click)="logoutClick()">Logout</a></li>
-            </div>
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <a class="navbar-brand" (click)="dmTradeClick()">
+        DM Trade
+    </a>
+    <button class="navbar-toggler" type="button" (click)="toggleNavbar()">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" [ngClass]="{'show': isNavbarOpen}">
+        <!-- Navbar for logged out user -->
+        <ul *ngIf="!this.loginService.loggedIn" class="navbar-nav mr-auto">
+            <li class="nav-item">
+                <a class="nav-link" (click)="browseMarketClick()">Browse Market</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" (click)="loginClick()">Login</a>
+            </li>
         </ul>
-        <div class="loginHeader">
-            {{loginHeader}}
-        </div>
+        <!-- Navbar for logged in user -->
+        <ul *ngIf="this.loginService.loggedIn" class="navbar-nav mr-auto">
+            <li class="nav-item">
+                <a class="nav-link" (click)="browseMarketClick()">Browse Market</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" (click)="portfoliosClick()">Portfolios</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" (click)="logoutClick()">Logout</a>
+            </li>
+        </ul>
     </div>
 </nav>
