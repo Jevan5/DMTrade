@@ -5,6 +5,7 @@ import { Observable } from 'rxjs';
 import { Router } from '@angular/router';
 import { CookieService } from 'ngx-cookie-service';
 import { callbackify } from 'util';
+import { environment } from '../../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
@@ -15,7 +16,7 @@ export class LoginService {
   password: string = '';    // Keeps track of the password entered upon a successful login
   security: Security;         // Keeps track of the logged in user's security record
   account: Account;          // Keeps track of the logged in user's account record
-  url: string = 'http://127.0.0.1:8080';
+  url: string = environment.dmTradeBackendURL;
   emailCookieKey: string = 'DMTradeEmail';
   passwordCookieKey: string = 'DMTradePassword';
   loading: boolean = false;
@@ -73,7 +74,7 @@ export class LoginService {
   login(email: string, password: string, requestInfo: RequestInfo) : void {
     this.loading = true;
     // Query API to login
-    this.http.get(this.url + '/securities/' + email + '/' + password).subscribe((data: Config) => {
+    this.http.get(this.url + 'securities/' + email + '/' + password).subscribe((data: Config) => {
       // Login successful
       this.security = data.security;
       this.password = password;
@@ -87,7 +88,7 @@ export class LoginService {
       }
       // User has already set personal information
       else{
-        this.http.get(this.url + '/accounts', {
+        this.http.get(this.url + 'accounts', {
           headers: new HttpHeaders({
             'security_id': this.security._id,
             'hashPass': this.password
@@ -147,7 +148,7 @@ export class LoginService {
    * the request.
    */
   register(email: string, password: string, requestInfo: RequestInfo) : void {
-    this.http.post(this.url + '/securities', {
+    this.http.post(this.url + 'securities', {
       email: email,
       hashPass: password
     }).subscribe((data: Config) => {
@@ -174,7 +175,7 @@ export class LoginService {
       });
       return;
     }
-    this.http.post(this.url + '/accounts', {
+    this.http.post(this.url + 'accounts', {
       firstName: firstName,
       lastName: lastName
     }, {

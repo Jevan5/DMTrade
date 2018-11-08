@@ -4,13 +4,14 @@ import { Config } from 'protractor';
 import { Observable } from 'rxjs';
 import { Router } from '@angular/router';
 import { LoginService, RequestInfo, RequestResponse } from '../login/login.service';
+import { environment } from '../../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class MarketService {
-  urlH: string = 'https://api.iextrading.com/1.0/stock/'; // URL head
-  urlT: string = '/batch?types=chart&range=';             // URL tail
+  urlH: string = environment.marketURL;       // URL head
+  urlT: string = '/batch?types=chart&range='; // URL tail
   limit: number = 100;
   bidAskRatio: number = 1.01;
   ranges: Array<string> = ["1 Day", "1 Month", "3 Months", "6 Months", "1 Year", "2 Years", "5 Years"];
