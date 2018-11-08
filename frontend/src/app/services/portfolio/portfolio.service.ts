@@ -5,12 +5,13 @@ import { Observable } from 'rxjs';
 import { Router } from '@angular/router';
 import { LoginService, Model, RequestInfo, RequestResponse } from '../login/login.service';
 import { MarketService } from '../../services/market/market.service';
+import { environment } from '../../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class PortfolioService {
-  url: string = 'http://127.0.0.1:8080';
+  url: string = environment.dmTradeBackendURL;
   portfolios: Array<Portfolio> = [];  // List of portfolios owned by this user
   selectedPortfolio: Portfolio;   // Last selected portfolio, for when a user navigates to the ViewPortfolio page
 
@@ -35,7 +36,7 @@ export class PortfolioService {
       return;
     }
 
-    this.http.delete(this.url + '/portfolios/' + portfolio._id, {
+    this.http.delete(this.url + 'portfolios/' + portfolio._id, {
       headers: new HttpHeaders({
         'security_id': this.loginService.security._id,
         'hashPass': this.loginService.password
@@ -63,7 +64,7 @@ export class PortfolioService {
       return;
     }
 
-    this.http.get(this.url + '/portfolios', {
+    this.http.get(this.url + 'portfolios', {
       headers: new HttpHeaders({
         'security_id': this.loginService.security._id,
         'hashPass': this.loginService.password
@@ -94,7 +95,7 @@ export class PortfolioService {
       return;
     }
 
-    this.http.get(this.url + '/portfolios/' + portfolio_id, {
+    this.http.get(this.url + 'portfolios/' + portfolio_id, {
       headers: new HttpHeaders({
         'security_id': this.loginService.security._id,
         'hashPass': this.loginService.password
@@ -122,7 +123,7 @@ export class PortfolioService {
       });
       return;
     }
-    this.http.post(this.url + '/portfolios', {
+    this.http.post(this.url + 'portfolios', {
       name: name
     }, {
       headers: new HttpHeaders({
@@ -168,7 +169,7 @@ export class PortfolioService {
       });
       return;
     }
-    this.http.post(this.url + '/trades/' + portfolio._id, {
+    this.http.post(this.url + 'trades/' + portfolio._id, {
       price: price,
       quantity: quantity,
       symbol: symbol,
@@ -217,7 +218,7 @@ export class PortfolioService {
       });
       return;
     }
-    this.http.post(this.url + '/trades/' + portfolio._id, {
+    this.http.post(this.url + 'trades/' + portfolio._id, {
       price: price,
       quantity: quantity,
       symbol: symbol,

@@ -36,6 +36,7 @@ app.use('/trades', trades);
 // connect to MongoDB using mongoose
 mongoose.connect('mongodb://localhost/startUp');
 
-app.listen(8080, function() {
-	console.log('Server listening on localhost:8080');
+let port = 8081;
+app.listen(port, function() {
+	console.log('Server listening on localhost:' + port.toString());
 });
