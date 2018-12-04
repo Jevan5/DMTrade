@@ -2,6 +2,8 @@ import { Component } from '@angular/core';
 import { LoginService } from './services/login/login.service';
 import { Config } from 'protractor';
 import { Title } from '../../node_modules/@angular/platform-browser';
+import { RequestInfo } from 'src/assets/requests/request-info';
+import { RequestResponse } from 'src/assets/requests/request-response';
 
 @Component({
   selector: 'app-root',
@@ -16,13 +18,10 @@ export class AppComponent {
 
   constructor(private loginService: LoginService, private titleService: Title){
     this.titleService.setTitle(this.title);
-    this.loginService.loginObservable.subscribe((data: Config) => {
-      this.loginHeader = data;
-      this.loading = false;
-    });
 
-    this.loading = true;
-    this.loginService.autoLogin();
+    // this.loginService.autoLogin(new RequestInfo(0, this, (r: RequestResponse) => {
+    //   this.loading = false;
+    // }));
   }
 
   ngOnInit(){

@@ -1,8 +1,10 @@
 import { Component, OnInit } from '@angular/core';
-import { LoginService, RequestInfo } from '../../services/login/login.service';
+import { LoginService } from '../../services/login/login.service';
+import { RequestInfo } from '../../../assets/requests/request-info';
 import { PortfolioService } from '../../services/portfolio/portfolio.service';
 import { Config } from 'protractor';
 import { Router } from '@angular/router';
+import { RequestResponse } from '../../../assets/requests/request-response';
 
 @Component({
   selector: 'app-navbar',
@@ -15,16 +17,6 @@ export class NavbarComponent {
   
   constructor(private loginService: LoginService, private portfolioService: PortfolioService,
     private router: Router) {
-    this.loginService.loginObservable.subscribe((data: Config) => {
-      // loginObservable gave information implying a logout
-      if(!data || !data.security.account){
-        this.loginHeader = '';
-      }
-      // loginObservable gave information implying a login
-      else{
-        this.loginHeader = 'Logged in as ' + data.account.firstName;
-      }
-    });
   }
 
   toggleNavbar(){
@@ -44,7 +36,7 @@ export class NavbarComponent {
   }
 
   logoutClick(){
-    this.loginService.logout(new RequestInfo(0, this, function(response, self){
+    this.loginService.logout(new RequestInfo(0, this, (r: RequestResponse) => {
 
     }));
   }

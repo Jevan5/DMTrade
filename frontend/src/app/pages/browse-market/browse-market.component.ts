@@ -1,9 +1,11 @@
 import { Component, OnInit, ElementRef, ViewChild } from '@angular/core';
-import { LoginService, RequestInfo, RequestResponse } from '../../services/login/login.service';
+import { LoginService } from '../../services/login/login.service';
 import { PortfolioService } from '../../services/portfolio/portfolio.service';
 import { MarketService, CompanyHistory } from '../../services/market/market.service';
 import { Config } from 'protractor';
 import { Chart } from 'chart.js';
+import { RequestInfo } from '../../../assets/requests/request-info';
+import { RequestResponse } from '../../../assets/requests/request-response';
 
 @Component({
   selector: 'app-browse-market',
@@ -34,11 +36,11 @@ export class BrowseMarketComponent {
     };
   }
 
-  /*
+  /**
    * This function is called when the user presses Search. This
    * starts the loading of the data for the graph.
    */
-  searchClick(){
+  searchClick() : void {
     if(!this.model.symbolToSearch){
       return;
     }
@@ -46,12 +48,12 @@ export class BrowseMarketComponent {
     this.loadData();
   }
 
-  /*
+  /**
    * Generates a graph for the searched stock symbol. Gathers
    * data by querying the MarketService, and creates the graph
    * based on the user's inputs.
    */
-  loadData(){
+  loadData() : void {
     this.loading = true;
     this.loadingMessage = 'Loading market data...';
     this.chartData = null;
@@ -93,10 +95,10 @@ export class BrowseMarketComponent {
     }, 1);
   }
 
-  /*
+  /**
    * Generates chart data that can be used to create a chart.
    *
-   * @param {CompanyHistory} companyHistory: Historical data
+   * @param companyHistory Historical data
    * about the company to create the graph from.
    */
   prepareData(companyHistory: CompanyHistory) : void {
@@ -169,7 +171,7 @@ export class BrowseMarketComponent {
     }
   }
 
-  /*
+  /**
    * This function is called when the user clicks Begin At Zero. It
    * changes the scaling of the graph, and re-loads the graph.
    */
@@ -183,11 +185,11 @@ export class BrowseMarketComponent {
     this.displayGraph(this.chartData);
   }
 
-  /*
+  /**
    * This function is called whenever the user presses a button
    * to change the time interval for the graph.
    * 
-   * @param {string} mode: Time interval for the graph.
+   * @param mode Time interval for the graph.
    */
   modeSelectionClick(range: string){
     this.model.range = range;

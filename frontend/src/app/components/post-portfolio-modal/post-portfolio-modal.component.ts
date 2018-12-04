@@ -4,7 +4,8 @@ import { NgbModal, ModalDismissReasons } from '@ng-bootstrap/ng-bootstrap';
 import { Router } from '@angular/router';
 import { ViewChild } from '@angular/core';
 import { PortfolioService } from '../../services/portfolio/portfolio.service';
-import { RequestInfo, RequestResponse } from '../../services/login/login.service';
+import { RequestInfo } from '../../../assets/requests/request-info';
+import { RequestResponse } from '../../../assets/requests/request-response';
 
 @Component({
   selector: 'app-post-portfolio-modal',
@@ -30,8 +31,10 @@ export class PostPortfolioModalComponent {
 
   }
 
-  // Displays the modal for creating a portfolio
-  open(content){
+  /**
+   * Displays the modal for creating a portfolio.
+   */
+  open(content) : void {
     this.loading = false;
     this.loadingMessage = '';
     this.warningMessage = '';
@@ -45,11 +48,11 @@ export class PostPortfolioModalComponent {
     });
   }
 
-  /*
+  /**
    * This function is called when the user clicks the
    * Save button in order to create the new portfolio.
    */
-  saveClick(){
+  saveClick() : void {
     this.warningMessage = '';
     this.successMessage = '';
     if(!this.model.name){
@@ -61,11 +64,11 @@ export class PostPortfolioModalComponent {
     this.portfolioService.postPortfolio(this.model.name, new RequestInfo(0, this, this.postPortfolioCallback));
   }
 
-  /*
+  /**
    * This function is called when the PortfolioService
    * has a response for creating the portfolio.
    * 
-   * @param {RequestResponse} requestResponse: Response
+   * @param requestResponse Response
    * from the PortfolioService for creating the Portfolio.
    */
   postPortfolioCallback(requestResponse: RequestResponse) : void {
