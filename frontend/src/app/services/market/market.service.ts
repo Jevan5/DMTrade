@@ -1,10 +1,11 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { Config } from 'protractor';
-import { Observable } from 'rxjs';
 import { Router } from '@angular/router';
-import { LoginService, RequestInfo, RequestResponse } from '../login/login.service';
+import { LoginService } from '../login/login.service';
 import { environment } from '../../../environments/environment';
+import { RequestInfo } from '../../../assets/requests/request-info';
+import { RequestResponse } from '../../../assets/requests/request-response';
 
 @Injectable({
   providedIn: 'root'
@@ -14,12 +15,17 @@ export class MarketService {
   urlT: string = '/batch?types=chart&range='; // URL tail
   limit: number = 100;
   bidAskRatio: number = 1.01;
-  ranges: Array<string> = ["1 Day", "1 Month", "3 Months", "6 Months", "1 Year", "2 Years", "5 Years"];
+  ranges: Array<string> = ["1 Month", "3 Months", "6 Months", "1 Year", "2 Years", "5 Years"];
+  // ranges: Array<string> = ["1 Day", "1 Month", "3 Months", "6 Months", "1 Year", "2 Years", "5 Years"]; *** 1 DAY markets are buggy ***
 
   constructor(private loginService: LoginService, private http: HttpClient) {}
 
-  /*
+  /**
    * Gets a company's stock information.
+   * 
+   * @param symbol Symbol to get market information for.
+   * @param range Range of time to get market information for.
+   * @param requestInfo Information regarding the request.
    */
   getMarket(symbol: string, range: string, requestInfo: RequestInfo) : void {
     if(range == null || this.ranges.indexOf(range) === -1){
@@ -31,7 +37,7 @@ export class MarketService {
       });
       return;
     }
-    if(range === this.ranges[0]){
+    if(range === "1 Day"){
       this.getOneDayMarket(symbol, requestInfo);
     }
     else {
@@ -39,7 +45,7 @@ export class MarketService {
     }
   }
 
-  /* 
+  /** 
    * Get a company's stock information from the current/last trading day.
    * 
    * The API response will be in the form:
@@ -91,9 +97,9 @@ export class MarketService {
    *    }]
    *  }
    * 
-   * @param {string} symbol: The company's symbol you'd like to view
+   * @param symbol The company's symbol you'd like to view
    * information for.
-   * @param {RequestInfo} requestInfo: Information regarding
+   * @param requestInfo Information regarding
    * the request.
    */
   private getOneDayMarket(symbol: string, requestInfo: RequestInfo) : void {
@@ -127,7 +133,7 @@ export class MarketService {
     });
   }
 
-  /*
+  /**
    * Get a company stock information from the last specified months of operation.
    * 
    * The API response will be in the form:
@@ -162,31 +168,31 @@ export class MarketService {
    *    }]
    *  }
    * 
-   * @param {string} symbol: The company's symbol you'd like to view
+   * @param symbol The company's symbol you'd like to view
    * information for.
-   * @param {number} months: How many months back to view information for. Must
+   * @param months How many months back to view information for. Must
    * be in the set {1, 3, 6, 12, 24, 60}.
-   * @param {RequestInfo} requestInfo: Information regarding
+   * @param requestInfo Information regarding
    * the request.
    */
   private getMonthsMarket(symbol: string, range: string, requestInfo: RequestInfo) : void {
     let timeRange: string;
-    if(range === this.ranges[1]){
+    if(range === "1 Month"){
       timeRange = "1m";
     }
-    else if(range === this.ranges[2]){
+    else if(range === "3 Months"){
       timeRange = "3m";
     }
-    else if(range === this.ranges[3]){
+    else if(range === "6 Months"){
       timeRange = "6m";
     }
-    else if(range === this.ranges[4]){
+    else if(range === "1 Year"){
       timeRange = "1y";
     }
-    else if(range === this.ranges[5]){
+    else if(range === "2 Years"){
       timeRange = "2y";
     }
-    else if(range === this.ranges[6]){
+    else if(range === "5 Years"){
       timeRange = "5y";
     }
 
@@ -214,14 +220,14 @@ export class MarketService {
     });
   }
 
-  /*
+  /**
    * Trims the data down to around this.limit entries.
    * 
-   * @param {Array<Object>} data: A long list, that will be copied with
+   * @param data A long list, that will be copied with
    * certain elements excluded to reduce the new array's length
-   * @returns {Array<Object>}: A shortened list, being a subset of data.
+   * @returns A shortened list, being a subset of data.
    */
-  trimData(data: Array<Object>) : Array<Object> {
+  private trimData(data: Array<Object>) : Array<Object> {
     // Trimmed data to return
     let trimmed = [];
     // How many elements to skip before copying another element
@@ -239,7 +245,7 @@ export class MarketService {
     return trimmed;
   }
 
-  /*
+  /**
    * Gets the highest price that someone is willing to
    * buy shares for a particular stock. Response is in the
    * form:
@@ -249,9 +255,9 @@ export class MarketService {
    *  bidPrice: number
    * }
    * 
-   * @param {string} symbol: The company's symbol you'd like to get
+   * @param symbol The company's symbol you'd like to get
    * the current bid price for.
-   * @param {RequestInfo} requestInfo: Information regarding
+   * @param requestInfo Information regarding
    * the request.
    */ 
   getBidPrice(symbol: string, requestInfo: RequestInfo) : void {
@@ -295,7 +301,7 @@ export class MarketService {
     });
   }
 
-  /*
+  /**
    * Gets the lowest price that someone is willing to
    * sell shares for a particular stock. Response is in the form:
    * {
@@ -304,12 +310,9 @@ export class MarketService {
    *  askPrice: number
    * }
    * 
-   * @param {string} symbol: The company's symbol you'd like to get
+   * @param symbol The company's symbol you'd like to get
    * the current ask price for.
-   * @param {number} searchSeqNum: The sequence number associated with
-   * the search to the API. Pass it through the callback, so the
-   * listener can keep track of when the call was first requested
-   * @param {RequestInfo} requestInfo: Information regarding
+   * @param requestInfo Information regarding
    * the request.
    */ 
   getAskPrice(symbol: string, requestInfo: RequestInfo) : void {
@@ -347,60 +350,46 @@ export class MarketService {
     });
   }
 
-  /*
+  /**
    * This function finds the current price of all the
    * symbols searched for.
    * 
-   * @param {Array<string>} symbols: List of symbols to get
-   * the prices for.
-   * @param {RequestInfo} requestInfo: Information regarding
+   * @param symbols Set of symbols to get the prices for.
+   * @param requestInfo Information regarding
    * the request.
    */
-  requestPrices(symbols: Array<string>, requestInfo: RequestInfo) : void {
-    if(symbols == null){
-      requestInfo.respond({
-        error: 'symbols = ' + (symbols === null) ? 'null' : 'undefined'
-      });
-      return;
-    }
-    if(requestInfo == null){
-      requestInfo.respond({
-        error: 'requestInfo = ' + (requestInfo === null) ? 'null' : 'undefined'
-      });
-      return;
+  requestPrices(symbols: Set<string>, requestInfo: RequestInfo) : void {
+    if (symbols == null || requestInfo == null) {
+      throw 'symbols = ' + JSON.stringify(symbols) + ', requestInfo = ' + JSON.stringify(requestInfo);
     }
 
     let symbolToPriceMap: Map<string, number> = new Map<string, number>();
-    if(symbols.length === 0){
+    if(symbols.size === 0){
       requestInfo.respond(symbolToPriceMap);
-    }
-    else{
-      let url = this.urlH + 'market' + this.urlT + '1d&symbols=' + symbols[0];
-      for(let i = 1; i < symbols.length; i++){
-        url += ',' + symbols[i];
-      }
+    } else {
+      let url = this.urlH + 'market' + this.urlT + '1d&symbols=';
+      symbols.forEach((symbol) => {
+        url += ',' + symbol
+      });
       this.http.get(url).subscribe((data: Config) => {
-        if(!data){
-          console.trace();
+        if (!data) {
           requestInfo.respond({
             error: 'data=' + data
           });
           return;
         }
         // Iterate over the symbols
-        for(let key in data) {
+        for (let key in data) {
           // Found a symbol
-          if(data.hasOwnProperty(key)){
-            if(!data[key].hasOwnProperty('chart')){
-              console.trace();
+          if (data.hasOwnProperty(key)) {
+            if (!data[key].hasOwnProperty('chart')) {
               requestInfo.respond({
                 error: "data[" + key + "].hasOwnProperty('chart')=FALSE"
               });
               return;
             }
             let chart = data[key].chart;
-            if(chart.length === 0){
-              console.trace();
+            if (chart.length === 0) {
               requestInfo.respond({
                 error: "data[" + key + "].chart.length=0"
               });
@@ -408,10 +397,9 @@ export class MarketService {
             }
             let index = data[key].chart.length - 1
             let latestSnapshot = data[key].chart[index];
-            if(!latestSnapshot.hasOwnProperty('average')){
-              console.trace();
+            if (!latestSnapshot.hasOwnProperty('average')) {
               requestInfo.respond({
-                error: "data[" + key + "].chart[" + index.toString() + "].hasOwnProperty('average')=FALSE"
+                error: "data[" + key + "].chart[" + index + "].hasOwnProperty('average')=FALSE"
               });
               return;
             }
@@ -423,14 +411,14 @@ export class MarketService {
     }
   }
 
-  /*
+  /**
    * This function finds the historical prices of all the
    * symbols searched for.
    * 
-   * @param {Array<string>} symbols: List of symbols to get
+   * @param symbols List of symbols to get
    * the historical prices for.
-   * @param {string} range: Range to find the prices for.
-   * @param {RequestInfo} requestInfo: Information regarding
+   * @param range Range to find the prices for.
+   * @param requestInfo Information regarding
    * the request.
    */
   requestHistoricalPrices(symbols: Array<string>, range: string, requestInfo: RequestInfo) : void {
@@ -452,19 +440,10 @@ export class MarketService {
       });
       return;
     }
-
-    let symbolToPriceMaps = new Array<Map<string, number>>();
-
-    if(symbols.length === 0){
-      requestInfo.respond(symbolToPriceMaps);
-    }
-    else {
-
-    }
   }
 }
 
-/*
+/**
  * This class is used to store historical data for a company.
  * This data fits well with graphing applications, presenting
  * opening, closing, high, and low values over minutes,
@@ -482,6 +461,15 @@ export class CompanyHistory {
   public range: string; // the interval of time segments that the snapshots occur
 
   constructor(symbol: string, chart: Config, range: string){
+    if (symbol == null) {
+      throw new Error('symbol = ' + symbol);
+    }
+    if (chart == null) {
+      throw new Error('chart = ' + chart);
+    }
+    if (range == null) {
+      throw new Error('range = ' + range);
+    }
     this.symbol = symbol;
     this.range = range;
     if(chart.length === 0){
@@ -498,7 +486,6 @@ export class CompanyHistory {
     else{
       throw new Error("chart elements must have either 'minute' or 'date' properties.")
     }
-
     this.snapshots = new Array<{
       open: number,
       close: number,
@@ -507,22 +494,36 @@ export class CompanyHistory {
       time: string
     }>();
 
-    let fields = ['open', 'close', 'high', 'low', timeKey];
+    let fields;
+    if (range == '1Day') {
+      fields = ['marketOpen', 'marketClose', 'marketHigh', 'marketLow', timeKey];
+    } else {
+      fields = ['open', 'close', 'high', 'low', timeKey];
+    }
 
     for(let i = 0; i < chart.length; i++){
       for(let j = 0; j < fields.length; j++){
         if(!chart[i].hasOwnProperty(fields[j])){
-          console.trace();
-          throw new Error(chart[i].toString() + " is missing field '" + fields[j] + "'.");
+          throw new Error(JSON.stringify(chart[i]) + " is missing field '" + fields[j] + "'.");
         }
       }
-      this.snapshots.push({
-        open: chart[i]['open'],
-        close: chart[i]['close'],
-        high: chart[i]['high'],
-        low: chart[i]['low'],
-        time: chart[i][timeKey]
-      });
+      if (range == '1Day') {
+        this.snapshots.push({
+          open: chart[i]['marketOpen'],
+          close: chart[i]['marketClose'],
+          high: chart[i]['marketHigh'],
+          low: chart[i]['marketLow'],
+          time: chart[i][timeKey]
+        });
+      } else {
+        this.snapshots.push({
+          open: chart[i]['open'],
+          close: chart[i]['close'],
+          high: chart[i]['high'],
+          low: chart[i]['low'],
+          time: chart[i][timeKey]
+        });
+      }
     }
   }
 }

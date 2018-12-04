@@ -1,9 +1,11 @@
 import { Component, OnInit } from '@angular/core';
 import { Config } from 'protractor';
-import { LoginService, RequestInfo, RequestResponse } from '../../services/login/login.service';
+import { LoginService } from '../../services/login/login.service';
 import { NgbModal, ModalDismissReasons } from '@ng-bootstrap/ng-bootstrap';
 import { Router } from '@angular/router';
 import { ViewChild } from '@angular/core';
+import { RequestInfo } from '../../../assets/requests/request-info';
+import { RequestResponse } from '../../../assets/requests/request-response';
 
 @Component({
   selector: 'app-set-user-modal',
@@ -14,26 +16,25 @@ export class SetUserModalComponent {
   model = {
     firstName: "",
     lastName: ""
-  }
+  };
 
   @ViewChild('content') private content;
 
   constructor(private loginService: LoginService, private modalService: NgbModal,
     private router: Router) {
-    this.loginService.loginObservable.subscribe((data: Config) => {
-      // User has not set their personal information yet
-      if(data && !data.security.account){
-        this.open(this.content);
-      }
-    });
+
   }
 
-  /*
+  public openModal() : void {
+    this.open(this.content);
+  }
+
+  /**
    * Displays the modal to set the user's personal information.
    * 
-   * @param {Object} content: Content to fill the modal.
+   * @param content Content to fill the modal.
    */
-  open(content){
+  private open(content){
     this.modalService.open(content, { centered: true }).result.then((result) => {
       // User pressed save but did not provide the required information
       if(!this.model.firstName || !this.model.lastName){
@@ -51,14 +52,14 @@ export class SetUserModalComponent {
     });
   }
 
-  /*
+  /**
    * This function is called when the LoginService has tried to create
    * the account for the user.
    * 
-   * @param {RequestResponse} requestResponse: Response from the
+   * @param requestResponse Response from the
    * LoginService after posting the new user's info.
    */
-  openCallback(requestResponse: RequestResponse) : void {
+  private openCallback(requestResponse: RequestResponse) : void {
     if(requestResponse.response.error){
       alert('Error setting user info: ' + requestResponse.response.error);
     }

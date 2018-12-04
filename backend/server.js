@@ -1,14 +1,18 @@
-const mongoose = require('mongoose');
-const express = require('express');
-const app = express();
-const bodyParser = require('body-parser');
+const mongoose 		= require('mongoose');
+const express 		= require('express');
+const app 			= express();
+const bodyParser	= require('body-parser');
+const https 		= require('https');
+const fs 			= require('fs');
+const port 			= require('./environments/environment').port;
 
 // import URL routes for HTTP API
 var accounts = require('./routes/accounts');
+var asks = require('./routes/asks');
 var authenticate = require('./routes/authenticate');
+var bids = require('./routes/bids');
 var portfolios = require('./routes/portfolios');
 var securities = require('./routes/securities');
-var trades = require('./routes/trades');
 
 // Parses application/json format
 app.use(bodyParser.json());
@@ -19,8 +23,8 @@ app.use(bodyParser.urlencoded({ extended: true }));
 // middleware for testing, allowing full access to API from anywhere
 app.use(function(req, res, next) {
 	// allow our page to query the API
-	res.setHeader("Access-Control-Allow-Credentials", "true");
-	res.setHeader('Access-Control-Allow-Origin', 'http://127.0.0.1:4200');
+	res.setHeader("Access-Control-Allow-Credentials", true);
+	res.setHeader('Access-Control-Allow-Origin', '*');
 	res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, security_id, hashPass', 'Access');
 	res.setHeader('Access-Control-Allow-Methods', 'POST, PATCH, GET, PUT, DELETE, OPTIONS');
 	next();
@@ -28,15 +32,17 @@ app.use(function(req, res, next) {
 
 // use Express to handle our HTTP routes
 app.use('/accounts', accounts);
+app.use('/asks', asks);
 app.use('/authenticate', authenticate);
+app.use('/bids', bids);
 app.use('/portfolios', portfolios);
 app.use('/securities', securities);
-app.use('/trades', trades);
 
 // connect to MongoDB using mongoose
 mongoose.connect('mongodb://localhost/startUp');
 
-let port = 8081;
-app.listen(port, function() {
-	console.log('Server listening on localhost:' + port.toString());
-});
+https.createServer({
+	key: fs.readFileSync(""),	// Put private key here
+	cert: fs.readFileSync("")	// Put certificate here
+}, app).listen(port);
+console.log('Server listening on localhost:' + port);

@@ -118,9 +118,9 @@ router.route('/')
             }
             portfolio = new Portfolio();
             portfolio.account = account._id;
-            portfolio.buys = [];
+            portfolio.bidSymbols = [];
             portfolio.name = req.body.name;
-            portfolio.sells = [];
+            portfolio.askSymbols = [];
             return portfolio.save();
         }).then(function(){
             account.portfolios.push(portfolio._id);

@@ -44,9 +44,11 @@
                     <h3>
                         Portfolio Value History
                     </h3>
+                    <p>Coming soon...</p>
                     <h3>
                         Portfolio Revenue History
                     </h3>
+                    <p>Coming soon...</p>
                 </ng-template><!--/Contents of the History tab-->
             </ngb-tab>
 
@@ -55,10 +57,10 @@
                     <h3>
                         Portfolio Value Distribution:
                     </h3>
-                    <div *ngIf="portfolioValue.atBid.values.length === 0" class="alert alert-warning">
+                    <div *ngIf="charts.valueDistribution.atBid.labels.length === 0" class="alert alert-warning">
                         You currently have no shares owned. You can purchase shares on the Browse Market page.
                     </div>
-                    <div *ngIf="portfolioValue.atBid.values.length > 0">
+                    <div *ngIf="charts.valueDistribution.atBid.labels.length > 0">
                         <canvas baseChart [datasets]="charts.valueDistribution.atBid.datasets" [labels]="charts.valueDistribution.atBid.labels" [options]="charts.valueDistribution.atBid.options" [chartType]="charts.valueDistribution.atBid.chartType"></canvas>
                         <canvas baseChart [datasets]="charts.valueDistribution.atMoment.datasets" [labels]="charts.valueDistribution.atMoment.labels" [options]="charts.valueDistribution.atMoment.options" [chartType]="charts.valueDistribution.atMoment.chartType"></canvas>
                         <table class="table table-bordered table-striped">
@@ -127,66 +129,35 @@
             <ngb-tab title="Transactions">
                 <ng-template ngbTabContent>
                     <ul class="timeline">
-                        <li *ngFor="let t of transactions" [ngClass]="{'timeline-inverted': t.ask}">
-                            <!-- success if (sold stocks for more than you bought them for), danger if (sold stocks for less than you bought them for), else neutral -->
-                            <div class="timeline-badge" [ngClass]="{'success': (t.bid && t.bid.soldFor > (t.bid.quantity - t.bid.remaining) * t.bid.price)
-                                || (t.ask && t.ask.boughtFor < (t.ask.quantity * t.ask.price)),
-                                'danger': (t.bid && t.bid.soldFor < (t.bid.quantity - t.bid.remaining) * t.bid.price)
-                                || (t.ask && t.ask.boughtFor > (t.ask.quantity * t.ask.price))}">
-                                <i class="glyphicon" [ngClass]="{'glyphicon-ok': t.bid && t.bid.remaining === 0,
-                                    'glyphicon-option-horizontal': t.bid && t.bid.remaining !== 0,
-                                    'glyphicon-sort': t.ask}">
-                                </i>
+                        <li *ngFor="let t of portfolio.getTrades().reverse()" [ngClass]="{'timeline-inverted': t.action == 'bid'}">
+                            <div class="timeline-badge">
+                                <!-- <i class="glyphicon" class="glyphicon-ok"></i> -->
                             </div>
                             <div class="timeline-panel">
                                 <div class="timeline-heading">
                                     <h4 class="timeline-title">
-                                        <div *ngIf="t.bid">
-                                            {{t.bid.symbol}} Bid
+                                        <div *ngIf="t.action == 'bid'">
+                                            Purchased {{t.trade.symbol}}
                                         </div>
-                                        <div *ngIf="t.ask">
-                                            {{t.ask.symbol}} Ask
+                                        <div *ngIf="t.action == 'ask'">
+                                            Sold {{t.trade.symbol}}
                                         </div>
                                     </h4>
                                     <p>
                                         <small class="text-muted"><i class="glyphicon glyphicon-time"></i>
-                                            <div *ngIf="t.bid">
-                                                {{t.bid.timeStamp}}
-                                            </div>
-                                            <div *ngIf="t.ask">
-                                                {{t.ask.timeStamp}}
+                                            <div>
+                                                {{t.trade.timeStamp}}
                                             </div>
                                         </small>
                                     </p>
                                 </div>
                                 <div class="timeline-body">
                                     <ul>
-                                        <li *ngIf="t.bid">
-                                            Quantity: {{t.bid.quantity}}
+                                        <li>
+                                            Quantity: {{t.trade.quantity}}
                                         </li>
-                                        <li *ngIf="t.ask">
-                                            Quantity: {{t.ask.quantity}}
-                                        </li>
-                                        <li *ngIf="t.bid">
-                                            Price: {{t.bid.price}}
-                                        </li>
-                                        <li *ngIf="t.ask">
-                                            Price: {{t.ask.price}}
-                                        </li>
-                                        <li *ngIf="t.bid">
-                                            Remaining: {{t.bid.remaining}}
-                                        </li>
-                                        <li *ngIf="t.bid">
-                                            Sold For ($): {{t.bid.soldFor}}
-                                        </li>
-                                        <li *ngIf="t.ask">
-                                            Bought For ($): {{t.ask.boughtFor}}
-                                        </li>
-                                        <li *ngIf="t.bid">
-                                            Revenue ($): {{t.bid.soldFor - (t.bid.quantity - t.bid.remaining) * t.bid.price}}
-                                        </li>
-                                        <li *ngIf="t.ask">
-                                            Revenue ($): {{t.ask.quantity * t.ask.price - t.ask.boughtFor}}
+                                        <li>
+                                            Price: {{t.trade.price}}
                                         </li>
                                     </ul>
                                 </div>

@@ -1,11 +1,14 @@
 import { Component, OnInit, Input } from '@angular/core';
 import { Config } from 'protractor';
-import { LoginService, RequestInfo, RequestResponse } from '../../services/login/login.service';
-import { PortfolioService, Portfolio } from '../../services/portfolio/portfolio.service';
+import { LoginService } from '../../services/login/login.service';
+import { PortfolioService } from '../../services/portfolio/portfolio.service';
 import { MarketService } from '../../services/market/market.service';
 import { NgbModal, ModalDismissReasons } from '@ng-bootstrap/ng-bootstrap';
 import { Router } from '@angular/router';
 import { ViewChild } from '@angular/core';
+import { Portfolio } from '../../models/portfolio';
+import { RequestInfo } from '../../../assets/requests/request-info';
+import { RequestResponse } from '../../../assets/requests/request-response';
 
 @Component({
   selector: 'app-sell-stock-modal',
@@ -19,7 +22,10 @@ export class SellStockModalComponent{
   model: {
     price: number,
     quantity: string,
-    selectedPortfolioAndShares: {portfolio: Portfolio, shares: number}
+    portfolioAndShares: {
+      key: Portfolio,
+      value: number
+    }
   };
 
   open: boolean;
@@ -29,16 +35,19 @@ export class SellStockModalComponent{
     warning: string,
     error: string
   };
-  interval: number;                                                     // Milliseconds of how often to query for bid price
-  searchSeqNum: number;                                                 // Sequence number to keep track of calls to get bid price
-  portfoliosAndShares: Array<{portfolio: Portfolio, shares: number }>;  // Showing how many shares are owned by each portfolio for the user
+  interval: number;                             // Milliseconds of how often to query for bid price
+  searchSeqNum: number;                         // Sequence number to keep track of calls to get bid price
+  portfoliosAndShares: Map<Portfolio, number>;  // Showing how many shares are owned by each portfolio for the user
 
   constructor(private portfolioService: PortfolioService, private modalService: NgbModal,
     private marketService: MarketService) {
     this.model = {
       price: null,
       quantity: null,
-      selectedPortfolioAndShares: null
+      portfolioAndShares: {
+        key: null,
+        value: null
+      }
     };
     this.open = false;
     this.messages = {
@@ -49,15 +58,15 @@ export class SellStockModalComponent{
     };
     this.searchSeqNum = 0;
     this.interval = 10000;
-    this.portfoliosAndShares = [];
   }
 
-  /*
+  /**
    * This function queries the PortfolioService for
    * the portfolios of the user.
    */
-  queryPortfolios(){
-    this.model.selectedPortfolioAndShares = null;
+  queryPortfolios() : void {
+    this.model.portfolioAndShares.key = null;
+    this.model.portfolioAndShares.value = null;
     this.model.quantity = null;
     this.messages.loading = 'Loading portfolios...';
     this.searchSeqNum++;
@@ -84,20 +93,20 @@ export class SellStockModalComponent{
         self.messages.loading = '';
         return;
       }
-      self.portfoliosAndShares = self.portfolioService.getSharesOwnedByPortfolios(self.symbol, requestResponse.response.portfolios);
+      self.portfoliosAndShares = Portfolio.getSharesOwnedByPortfolios(self.symbol, new Set<Portfolio>(requestResponse.response));
       self.messages.loading = 'Loading bid price...';
       self.searchSeqNum++;
       self.marketService.getBidPrice(self.symbol, new RequestInfo(self.searchSeqNum, self, self.queryBidPriceCallback));
     }));
   }
 
-  /*
+  /**
    * This function is called when the MarketService
    * has a response to the query for the bid price.
    * It then queries the MarketService again for
    * the bidPrice every so often.
    * 
-   * @param {RequestResponse} requestResponse: Response from the PortfolioService
+   * @param requestResponse Response from the PortfolioService
    * for getting the user's portfolios.
    */
   queryBidPriceCallback(requestResponse: RequestResponse) : void {
@@ -134,7 +143,7 @@ export class SellStockModalComponent{
     }, self.interval);
   }
 
-  /*
+  /**
    * This function is called when the user clicks the Sell button.
    * It triggers the retrieval of the portfolios, which then
    * triggers the ongoing retrieval of the bid price for the stock.
@@ -144,7 +153,7 @@ export class SellStockModalComponent{
     this.openModal();
   }
 
-  /*
+  /**
    * This function re-opens the modal, and starts loading
    * data such as the user's portfolios.
    */
@@ -162,7 +171,7 @@ export class SellStockModalComponent{
     });
   }
 
-  /*
+  /**
    * This function is called when the user clicks the Save button
    * in the modal. A request to post an ask to the API will be made.
    */
@@ -171,11 +180,11 @@ export class SellStockModalComponent{
       this.messages.warning = 'Must enter a numeric quantity.';
       return;
     }
-    if(!this.model.selectedPortfolioAndShares){
+    if(!this.model.portfolioAndShares.key){
       this.messages.warning = 'Must select a portfolio.';
       return;
     }
-    if(parseInt(this.model.quantity) > this.model.selectedPortfolioAndShares.shares){
+    if(parseInt(this.model.quantity) > this.model.portfolioAndShares.value){
       this.messages.warning = "You don't own that many shares.";
       return;
     }
@@ -183,7 +192,7 @@ export class SellStockModalComponent{
     this.messages.success = '';
     this.messages.loading = "Placing ask...";
     this.portfolioService.postAsk(this.symbol, parseInt(this.model.quantity), this.model.price,
-      this.model.selectedPortfolioAndShares.portfolio, new RequestInfo(0, this, (requestResponse: RequestResponse) => {
+      this.model.portfolioAndShares.key.get_id(), new RequestInfo(0, this, (requestResponse: RequestResponse) => {
       var self = requestResponse.requestInfo.self;
       self.messages.loading = '';
       if(requestResponse.response.error){

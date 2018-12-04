@@ -14,6 +14,7 @@ const Security = require('../models/security');
 const ourEmail = 'DMTrade2877@gmail.com';
 const ourPass = 'HorseSpongeBikini';
 const ourService = 'gmail';
+const url = require('../environments/environment').url;
 
 router.route('/')
     // See all current securities
@@ -72,14 +73,17 @@ router.route('/')
                 to: email,
                 subject: 'Authenticate Email',
                 text: 'Please click the link below to authenticate your account:\n\n'
-                + 'http://127.0.0.1:8080/authenticate/email/' + security._id + '/' + authentication
+                + url + 'authenticate/email/' + security._id + '/' + authentication
             };
             return transporter.sendMail(mailOptions);
         }).then(function(){// Once email has been successfully sent, save the entry into the database
             return security.save();
         }).then(function(){
             // Once the entry has been saved, send a response to the client
-            res.send({ message: 'Account registered, please check ' + email + ' for authentication link.' });
+            res.send({
+                message: 'Account registered, please check ' + email + ' for authentication link.',
+                security: security
+            });
         }).catch(function(err){
             if(err){
                 logErr(err);
@@ -131,7 +135,7 @@ router.route('/:email')
                 to: email,
                 subject: 'Authenticate Password Change',
                 text: 'Please click the link below to confirm your password change:\n\n'
-                + 'http://127.0.0.1:8080/authenticate/passwordChange/' + security._id + '/' + authentication
+                + url + 'authenticate/passwordChange/' + security._id + '/' + authentication
             };
             return transporter.sendMail(mailOptions);
         }).then(function(){

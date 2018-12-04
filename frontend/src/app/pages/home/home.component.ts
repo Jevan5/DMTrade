@@ -12,7 +12,7 @@ export class HomeComponent {
   constructor(private loginService: LoginService, private router: Router) {
   }
 
-  /*
+  /**
    * This function is called when the user clicks the Get Started
    * button.
    */

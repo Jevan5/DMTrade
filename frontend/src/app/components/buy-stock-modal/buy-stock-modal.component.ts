@@ -1,7 +1,10 @@
 import { Component, OnInit, Input } from '@angular/core';
 import { Config } from 'protractor';
-import { LoginService, RequestInfo, RequestResponse } from '../../services/login/login.service';
-import { PortfolioService, Portfolio } from '../../services/portfolio/portfolio.service';
+import { LoginService } from '../../services/login/login.service';
+import { RequestInfo } from '../../../assets/requests/request-info';
+import { RequestResponse } from '../../../assets/requests/request-response';
+import { PortfolioService } from '../../services/portfolio/portfolio.service';
+import { Portfolio } from '../../models/portfolio';
 import { MarketService } from '../../services/market/market.service';
 import { NgbModal, ModalDismissReasons } from '@ng-bootstrap/ng-bootstrap';
 import { Router } from '@angular/router';
@@ -48,7 +51,7 @@ export class BuyStockModalComponent{
     };
   }
 
-  /*
+  /**
    * This function queries the PortfolioService
    * for the portfolios of the user.
    */
@@ -86,13 +89,13 @@ export class BuyStockModalComponent{
     }));
   }
 
-  /*
+  /**
    * This function is called when the MarketService has
    * a response to the ask price query. It then
    * makes another request for the ask price some
    * time later.
    * 
-   * @param {RequestResponse} requestResponse: Response from
+   * @param requestResponse Response from
    * the MarketService for getting the ask price.
    */
   queryAskPriceCallback(requestResponse: RequestResponse) : void {
@@ -128,7 +131,7 @@ export class BuyStockModalComponent{
     }, self.interval);
   }
 
-  /*
+  /**
    * This function is called when the user clicks the Buy button. The
    * data required such as portfolios and ask price are loaded,
    * and the modal is opened.
@@ -137,7 +140,7 @@ export class BuyStockModalComponent{
     this.openModal();
   }
 
-  /*
+  /**
    * This function re-opens the modal, and starts loading
    * data such as the user's portfolios.
    */
@@ -158,7 +161,7 @@ export class BuyStockModalComponent{
     });
   }
 
-  /*
+  /**
    * This function is called when the user clicks the
    * Save button. An attempt to place the bid is made.
    */
@@ -177,7 +180,7 @@ export class BuyStockModalComponent{
     this.messages.warning = '';
     this.messages.loading = "Placing bid...";
     this.portfolioService.postBid(this.symbol, parseInt(this.model.quantity), this.model.price,
-    this.model.selectedPortfolio, new RequestInfo(0, this, (requestResponse: RequestResponse) => {
+      this.model.selectedPortfolio.get_id(), new RequestInfo(0, this, (requestResponse: RequestResponse) => {
       var self = requestResponse.requestInfo.self;
       self.messages.loading = '';
       if(requestResponse.response.error){

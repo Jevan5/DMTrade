@@ -11,14 +11,14 @@
       <label for="price">Price</label>
       <input type="text" class="form-control" id="price" name="price" disabled [(ngModel)]="model.price">
       <label for="sharesOwned">Shares Owned</label>
-      <input *ngIf="!model.selectedPortfolioAndShares" type="text" class="form-control" disabled>
-      <input *ngIf="model.selectedPortfolioAndShares" type="text" class="form-control" id="sharesOwned" name="sharesOwned" disabled [(ngModel)]="model.selectedPortfolioAndShares.shares">
+      <input *ngIf="!model.portfolioAndShares" type="text" class="form-control" disabled>
+      <input *ngIf="model.portfolioAndShares" type="text" class="form-control" id="sharesOwned" name="sharesOwned" disabled [(ngModel)]="model.portfolioAndShares.value">
       <label for="quantity">Quantity</label>
       <input type="text" class="form-control" id="quantity" name="quantity" required [(ngModel)]="model.quantity">
       <label for="portfolio">Portfolio</label>
-      <select class="form-control" [(ngModel)]="model.selectedPortfolioAndShares" name="model.selectedPortfolioAndShares">
-        <option *ngFor="let portfolioAndShares of portfoliosAndShares" [ngValue]="portfolioAndShares">
-          {{portfolioAndShares.portfolio.name}}
+      <select class="form-control" [(ngModel)]="model.portfolioAndShares" name="model.portfolioAndShares">
+        <option *ngFor="let portfolioAndShares of portfoliosAndShares | keyvalue" [ngValue]="portfolioAndShares">
+          {{portfolioAndShares.key.getName()}}
         </option>
       </select>
       <div *ngIf="messages.warning" class="alert alert-warning">
