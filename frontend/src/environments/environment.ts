@@ -4,7 +4,7 @@
 
 export const environment = {
   production: false,
-  dmTradeBackendURL: 'https://127.0.0.1:8080/',
+  dmTradeBackendURL: 'https://www.joshevans.tk:8080/',
   marketURL: 'https://api.iextrading.com/1.0/stock/'
 };
 
