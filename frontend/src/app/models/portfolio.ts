@@ -245,6 +245,25 @@ export class Portfolio {
     }
 
     /**
+     * Gets all symbols that the portfolio has ever traded.
+     * 
+     * @return Set of all symbols ever traded.
+     */
+    public getSymbolsTraded() : Set<string> {
+        let symbols = new Set<string>();
+
+        this.bidSymbols.forEach((bidSymbol) => {
+            symbols.add(bidSymbol.symbol);
+        });
+
+        this.askSymbols.forEach((askSymbol) => {
+            symbols.add(askSymbol.symbol);
+        });
+
+        return symbols;
+    }
+
+    /**
      * Determines how many shares are owned of the symbol
      * in each of the portfolios.
      * 
@@ -334,7 +353,7 @@ export class PortfolioValue {
         // non-negative, start counting the value of the
         // remaining shares, at their bid prices
         portfolio.getBidSymbols().forEach((bidSymbol) => {
-            let value;
+            let value = 0;
             let shares;
             if (!remainingMap.has(bidSymbol.symbol)) {
                 shares = 0;
@@ -473,7 +492,7 @@ export class PortfolioRevenue {
         // How many shares of each symbol remain
         let remainingMap = new Map<string, number>();
 
-        this.portfolio.getAskSymbols().forEach((askSymbol) => {
+        this.portfolio.getAskSymbols().forEach((askSymbol) => { // Iterate over every symbol that has an ask placed
             // Revenue earned by selling shares. Increasing by selling
             let revenue = 0;
             // Shares remaining for this symbol. Decreasing by counting how many were sold
@@ -495,15 +514,15 @@ export class PortfolioRevenue {
             // Shares remaining for this symbol. Increasing by counting how many were purchased
             let shares;
             // The total value of the shares that have not been sold. Increasing by counting
-            let bidValue;
+            let bidValue = 0;
 
             if (!remainingMap.has(bidSymbol.symbol)) {
-                shares = 0;
-                revenue = 0;
-            } else {
-                shares = remainingMap.get(bidSymbol.symbol);
-                revenue = this.atAsk.revenues.get(bidSymbol.symbol);
+                remainingMap.set(bidSymbol.symbol, 0);
+                this.atAsk.revenues.set(bidSymbol.symbol, 0);
+                this.atMoment.revenues.set(bidSymbol.symbol, 0);
             }
+            shares = remainingMap.get(bidSymbol.symbol);
+            revenue = this.atAsk.revenues.get(bidSymbol.symbol);
 
             bidSymbol.bids.forEach((bid) => {
                 if (shares >= 0) { // Accounted for all sold shares already
@@ -518,14 +537,14 @@ export class PortfolioRevenue {
             });
             remainingMap.set(bidSymbol.symbol, shares);
 
-            if (revenue != 0) { // If no revenue was earned, don't add it to the map
+            if (revenue == 0) { // If no revenue was earned, don't add it to the map
+                this.atAsk.revenues.delete(bidSymbol.symbol);
+            } else {
                 this.atAsk.revenues.set(bidSymbol.symbol, revenue);
             }
 
             let revenueWithUnearned = revenue;
-            if (remainingMap.get(bidSymbol.symbol) > 0) {
-                revenueWithUnearned += remainingMap.get(bidSymbol.symbol) * values.get(bidSymbol.symbol) - bidValue;
-            }
+            revenueWithUnearned += remainingMap.get(bidSymbol.symbol) * values.get(bidSymbol.symbol) - bidValue;
 
             if (revenueWithUnearned != 0) {
                 this.atMoment.revenues.set(bidSymbol.symbol, revenueWithUnearned);

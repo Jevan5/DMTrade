@@ -91,7 +91,7 @@ export class ViewPortfolioComponent {
    */
   preparePortfolio() : void {
     this.messages.loading = 'Finding current prices of shares owned...';
-    let symbols = this.portfolio.getSymbolsOwned();
+    let symbols = this.portfolio.getSymbolsTraded();
     this.marketService.requestPrices(symbols, new RequestInfo(0, this, (requestResponse: RequestResponse) => {
       var self = requestResponse.requestInfo.self;
       if(requestResponse.response.error){
@@ -114,13 +114,17 @@ export class ViewPortfolioComponent {
    * shares of each stock do you own, etc.
    */
   prepareData() : void {
-    this.messages.loading = 'Preparing data for display...';
-    // Calculate total revenue of the portfolio
-    this.ownedShares = this.portfolio.getSharesOwned();
-    this.prepareCharts();
-    this.prepareTables();
-
-    this.messages.loading = '';
+    try {
+      this.messages.loading = 'Preparing data for display...';
+      // Calculate total revenue of the portfolio
+      this.ownedShares = this.portfolio.getSharesOwned();
+      this.prepareCharts();
+      this.prepareTables();
+  
+      this.messages.loading = '';
+    } catch (e) {
+      alert (e);
+    }
   }
 
   /**
@@ -393,7 +397,7 @@ class RevenueDistributionTable implements Table {
     };
 
     // For each symbol, find the revenue at ask, and at moment
-    let revenuesMap: Map<string, { atAsk: number, atMoment: number }> = new Map<string, { atAsk: number, atMoment: number }>();
+    let revenuesMap = new Map<string, { atAsk: number, atMoment: number }>();
 
     // Find the revenue earned by purchasing and re-selling shares
     portfolioRevenue.getAtAsk().revenues.forEach((revenue, symbol) => {
@@ -406,10 +410,17 @@ class RevenueDistributionTable implements Table {
     // Find the revenue earned by purchasing and re-selling shares, and revenues
     // incurred from price changes in outstanding shares
     portfolioRevenue.getAtMoment().revenues.forEach((revenue, symbol) => {
-      revenuesMap.set(symbol, {
-        atAsk: revenuesMap.get(symbol).atAsk,
-        atMoment: revenue
-      });
+      if (!revenuesMap.has(symbol)) {
+        revenuesMap.set(symbol, {
+          atAsk: 0,
+          atMoment: revenue
+        });
+      } else {
+        revenuesMap.set(symbol, {
+          atAsk: revenuesMap.get(symbol).atAsk,
+          atMoment: revenue
+        });
+      }
     });
 
     // Fill the rows

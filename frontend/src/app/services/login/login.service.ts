@@ -75,7 +75,10 @@ export class LoginService {
       this.security = new Security(data.security);
       this.password = password;
       if (!this.security.getAccount()) { // User hasn't set personal information yet
-        requestInfo.respond(this.security);
+        requestInfo.respond({
+          security: this.security,
+          account: null
+        });
         this.loading = false;
       } else { // User has already set personal information
         this.http.get(this.url + 'accounts', {
@@ -96,6 +99,7 @@ export class LoginService {
             security: this.security,
             account: account
           });
+          this.router.navigate(['/portfolios']);
           this.loading = false;
         }, error => {
           requestInfo.respond(error);

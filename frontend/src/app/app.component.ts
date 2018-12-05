@@ -19,9 +19,9 @@ export class AppComponent {
   constructor(private loginService: LoginService, private titleService: Title){
     this.titleService.setTitle(this.title);
 
-    // this.loginService.autoLogin(new RequestInfo(0, this, (r: RequestResponse) => {
-    //   this.loading = false;
-    // }));
+    this.loginService.autoLogin(new RequestInfo(0, this, (r: RequestResponse) => {
+      this.loading = false;
+    }));
   }
 
   ngOnInit(){
