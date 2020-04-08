@@ -15,8 +15,8 @@ export class NavbarComponent {
   loginHeader;  // Displaying information about who's logged in
   isNavbarOpen: boolean = false;
   
-  constructor(private loginService: LoginService, private portfolioService: PortfolioService,
-    private router: Router) {
+  constructor(public loginService: LoginService, public portfolioService: PortfolioService,
+    public router: Router) {
   }
 
   toggleNavbar(){
