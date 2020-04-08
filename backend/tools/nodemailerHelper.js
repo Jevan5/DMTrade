@@ -1,16 +1,17 @@
 const nodemailer = require('nodemailer');
+const secrets    = require('../../secrets.json');
 
 var sendMail = function(recipient, subject, body){
     let transporter = nodemailer.createTransport({
-        service: 'gmail',
+        service: 'outlook',
         auth: {
-            user: 'DMTrade2877@gmail.com',
-            pass: 'HorseSpongeBikini'
+            user: secrets.emailAddress,
+            pass: secrets.emailPassword
         }
     });
 
     let mailOptions = {
-        from: 'DMTrade2877@gmail.com',
+        from: secrets.emailAddress,
         to: recipient,
         subject: subject,
         text: body
@@ -21,4 +22,4 @@ var sendMail = function(recipient, subject, body){
 
 module.exports = {
     sendMail: sendMail
-}
+};

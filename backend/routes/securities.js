@@ -11,10 +11,8 @@ const nodemailerHelper = require('../tools/nodemailerHelper');
 const Account = require('../models/account');
 const Security = require('../models/security');
 
-const ourEmail = 'DMTrade2877@gmail.com';
-const ourPass = 'HorseSpongeBikini';
 const ourService = 'gmail';
-const url = require('../environments/environment').url;
+const Environment = require('../environment');
 
 router.route('/')
     // See all current securities
@@ -60,22 +58,7 @@ router.route('/')
             security.hashPass = cryptoHelper.hash(req.body.hashPass, security.salt);
             security.passChange = '';
 
-            let transporter = nodemailer.createTransport({
-                service: ourService,
-                auth: {
-                    user: ourEmail,
-                    pass: ourPass
-                }
-            });
-        
-            let mailOptions = {
-                from: ourEmail,
-                to: email,
-                subject: 'Authenticate Email',
-                text: 'Please click the link below to authenticate your account:\n\n'
-                + url + 'authenticate/email/' + security._id + '/' + authentication
-            };
-            return transporter.sendMail(mailOptions);
+            return nodemailerHelper.sendMail(email, 'Authenticate Email', `Please click the link below to authenticate your account:\n\n${Environment.instance.url}:${Environment.instance.port}/authenticate/email/${security._id}/${authentication}`);
         }).then(function(){// Once email has been successfully sent, save the entry into the database
             return security.save();
         }).then(function(){
@@ -134,8 +117,7 @@ router.route('/:email')
                 from: ourEmail,
                 to: email,
                 subject: 'Authenticate Password Change',
-                text: 'Please click the link below to confirm your password change:\n\n'
-                + url + 'authenticate/passwordChange/' + security._id + '/' + authentication
+                text: `Please click the link below to confirm your password change:\n\n${Environment.instance.url}:${Environment.instance.port}/authenticate/passwordChange/${security._id}/${authentication}`
             };
             return transporter.sendMail(mailOptions);
         }).then(function(){

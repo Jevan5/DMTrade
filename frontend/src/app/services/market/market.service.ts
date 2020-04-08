@@ -11,8 +11,6 @@ import { RequestResponse } from '../../../assets/requests/request-response';
   providedIn: 'root'
 })
 export class MarketService {
-  urlH: string = environment.marketURL;       // URL head
-  urlT: string = '/batch?types=chart&range='; // URL tail
   limit: number = 100;
   bidAskRatio: number = 1.01;
   ranges: Array<string> = ["1 Month", "3 Months", "6 Months", "1 Year", "2 Years", "5 Years"];
@@ -49,53 +47,47 @@ export class MarketService {
    * Get a company's stock information from the current/last trading day.
    * 
    * The API response will be in the form:
-   *  {
-   *    "chart": [{
-   *      "date": "20180808",
-   *      "minute": "09:30",
-   *      "label": "09:30 AM",
-   *      "high": 206.4,
-   *      "low": 205.79,
-   *      "average": 206.073,
-   *      "volume": 9778,
-   *      "notional": 2014986.645,
-   *      "numberOfTrades": 107,
-   *      "marketHigh": 206.428,
-   *      "marketLow": 205.76,
-   *      "marketAverage": 206.06,
-   *      "marketVolume": 926629,
-   *      "marketNotional": 190941286.4103,
-   *      "marketNumberOfTrades": 3416,
-   *      "open": 206.09,
-   *      "close": 205.79,
-   *      "marketOpen": 206.08,
-   *      "marketClose": 205.92,
-   *      "changeOverTime": 0,
-   *      "marketChangeOverTime": 0
-   *    }, {
-   *      "date": "20180808",
-   *      "minute": "09:31",
-   *      "label": "09:31 AM",
-   *      "high": 206.44,
-   *      "low": 205.92,
-   *      "average": 206.183,
-   *      "volume": 3950,
-   *      "notional": 814424.65,
-   *      "numberOfTrades": 28,
-   *      "marketHigh": 206.45,
-   *      "marketLow": 205.9,
-   *      "marketAverage": 206.208,
-   *      "marketVolume": 134887,
-   *      "marketNotional": 27814721.5429,
-   *      "marketNumberOfTrades": 1084,
-   *      "open": 205.92,
-   *      "close": 206.13,
-   *      "marketOpen": 205.92,
-   *      "marketClose": 206.091,
-   *      "changeOverTime": 0.0005337914234275486,
-   *      "marketChangeOverTime": 0.0007182374065805888
-   *    }]
-   *  }
+   *  [{
+   *    "date": "20180808",
+   *    "minute": "09:30",
+   *    "label": "09:30 AM",
+   *    "average": 206.073,
+   *    "volume": 9778,
+   *    "notional": 2014986.645,
+   *    "numberOfTrades": 107,
+   *    "high": 206.428,
+   *    "low": 205.76,
+   *    "marketAverage": 206.06,
+   *    "marketVolume": 926629,
+   *    "marketNotional": 190941286.4103,
+   *    "marketNumberOfTrades": 3416,
+   *    "open": 206.09,
+   *    "close": 205.79,
+   *    "marketOpen": 206.08,
+   *    "marketClose": 205.92,
+   *    "changeOverTime": 0,
+   *    "marketChangeOverTime": 0
+   *  }, {
+   *    "date": "20180808",
+   *    "minute": "09:31",
+   *    "label": "09:31 AM",
+   *    "average": 206.183,
+   *    "volume": 3950,
+   *    "notional": 814424.65,
+   *    "numberOfTrades": 28,
+   *    "high": 206.45,
+   *    "low": 205.9,
+   *    "marketAverage": 206.208,
+   *    "marketVolume": 134887,
+   *    "marketNotional": 27814721.5429,
+   *    "marketNumberOfTrades": 1084,
+   *    "open": 205.92,
+   *    "close": 206.13,
+   *    "marketOpen": 205.92,
+   *    "marketClose": 206.091,
+   *    "changeOverTime": 0.0005337914234275486,
+   *    "marketChangeOverTime": 0.0007182374065805888
+   *  }]
    * 
    * @param symbol The company's symbol you'd like to view
    * information for.
@@ -109,15 +101,9 @@ export class MarketService {
       });
       return;
     }
-    this.http.get(this.urlH + symbol + this.urlT + '1d').subscribe((data: Config) => {
-      if(!data["chart"]){
-        requestInfo.respond({
-          error: "data has no member 'chart'."
-        });
-        return;
-      }
+    this.http.get(`${environment.marketURL}stock/${symbol}/intraday-prices?token=${environment.marketToken}`).subscribe((data: any) => {
       try{
-        var trimmedData = this.trimData(data["chart"]);
+        var trimmedData = this.trimData(data);
         var companyHistory = new CompanyHistory(symbol.toUpperCase(), trimmedData, '1Day');
         requestInfo.respond(companyHistory);
       }
@@ -138,35 +124,33 @@ export class MarketService {
    * 
    * The API response will be in the form:
    * 
-   *  {
-   *    "chart": [{
-   *      "date": "2018-07-09",
-   *      "open": 189.5,
-   *      "high": 190.68,
-   *      "low": 189.3,
-   *      "close": 190.58,
-   *      "volume": 19756634,
-   *      "unadjustedVolume": 19756634,
-   *      "change": 2.61,
-   *      "changePercent": 1.389,
-   *      "vwap": 190.19,
-   *      "label": "Jul 9",
-   *      "changeOverTime": 0
-   *    }, {
-   *      "date": "2018-07-10",
-   *      "open": 190.71,
-   *      "high": 191.28,
-   *      "low": 190.1801,
-   *      "close": 190.35,
-   *      "volume": 15939149,
-   *      "unadjustedVolume": 15939149,
-   *      "change": -0.23,
-   *      "changePercent": -0.121,
-   *      "vwap": 190.6699,
-   *      "label": "Jul 10",
-   *      "changeOverTime": -0.001206842270962421
-   *    }]
-   *  }
+   * [{
+   *   "date": "2018-07-09",
+   *   "open": 189.5,
+   *   "high": 190.68,
+   *   "low": 189.3,
+   *   "close": 190.58,
+   *   "volume": 19756634,
+   *   "unadjustedVolume": 19756634,
+   *   "change": 2.61,
+   *   "changePercent": 1.389,
+   *   "vwap": 190.19,
+   *   "label": "Jul 9",
+   *   "changeOverTime": 0
+   * }, {
+   *   "date": "2018-07-10",
+   *   "open": 190.71,
+   *   "high": 191.28,
+   *   "low": 190.1801,
+   *   "close": 190.35,
+   *   "volume": 15939149,
+   *   "unadjustedVolume": 15939149,
+   *   "change": -0.23,
+   *   "changePercent": -0.121,
+   *   "vwap": 190.6699,
+   *   "label": "Jul 10",
+   *   "changeOverTime": -0.001206842270962421
+   * }]
    * 
    * @param symbol The company's symbol you'd like to view
    * information for.
@@ -196,15 +180,9 @@ export class MarketService {
       timeRange = "5y";
     }
 
-    this.http.get(this.urlH + symbol + this.urlT + timeRange).subscribe((data: Config) => {
-      if(!data["chart"]){
-        requestInfo.respond({
-          error: "data has no member 'chart'."
-        });
-        return;
-      }
+    this.http.get(`${environment.marketURL}stock/${symbol}/chart/${timeRange}?token=${environment.marketToken}`).subscribe((data: any) => {
       try{
-        var trimmedData = this.trimData(data["chart"]);
+        var trimmedData = this.trimData(data);
         var companyHistory = new CompanyHistory(symbol.toUpperCase(), trimmedData, timeRange);
         requestInfo.respond(companyHistory);
       }
@@ -267,33 +245,21 @@ export class MarketService {
       });
       return;
     }
-    this.http.get(this.urlH + symbol + this.urlT + '1d').subscribe((data: Config) => {
-      if(!data["chart"]){
+    this.http.get(`${environment.marketURL}stock/${symbol}/intraday-prices?token=${environment.marketToken}`).subscribe((data: any) => {
+      let day = data[data.length - 1];
+      if(!day.hasOwnProperty('high') || typeof(day['high']) !== 'number'){
         requestInfo.respond({
-          error: "data has no member 'chart'."
+          error: "data has no field 'high' of type 'number'."
         });
         return;
       }
-      if(!data["chart"].length || data["chart"].length === 0){
+      if(!day.hasOwnProperty('low') || typeof(day['low']) !== 'number'){
         requestInfo.respond({
-          error: 'data is not a non-empty Array.'
+          error: "data has no field 'low' of type 'number'."
         });
         return;
       }
-      let day = data["chart"][data["chart"].length - 1];
-      if(!day.hasOwnProperty('marketHigh') || typeof(day['marketHigh']) !== 'number'){
-        requestInfo.respond({
-          error: "data['chart'] has no field 'marketHigh' of type 'number'."
-        });
-        return;
-      }
-      if(!day.hasOwnProperty('marketLow') || typeof(day['marketLow']) !== 'number'){
-        requestInfo.respond({
-          error: "data['chart'] has no field 'marketLow' of type 'number'."
-        });
-        return;
-      }
-      requestInfo.respond({bidPrice: Math.round((day["marketHigh"] + day["marketLow"]) / 2 / 1.01 * 100) / 100});
+      requestInfo.respond({bidPrice: Math.round((day["high"] + day["low"]) / 2 / 1.01 * 100) / 100});
     }, error => {
       requestInfo.respond({
         error: error.statusText
@@ -322,27 +288,21 @@ export class MarketService {
       });
       return;
     }
-    this.http.get(this.urlH + symbol + this.urlT + '1d').subscribe((data: Config) => {
-      if(!data["chart"] || !data["chart"].length || data["chart"].length === 0){
+    this.http.get(`${environment.marketURL}stock/${symbol}/intraday-prices?token=${environment.marketToken}`).subscribe((data: Config) => {
+      let day = data[data.length - 1];
+      if(!day.hasOwnProperty('high') || typeof(day['high']) !== 'number'){
         requestInfo.respond({
-          error: "data has no field 'chart' of type 'Array'."
+          error: "data has no field 'high' of type 'number'."
         });
         return;
       }
-      let day = data["chart"][data["chart"].length - 1];
-      if(!day.hasOwnProperty('marketHigh') || typeof(day['marketHigh']) !== 'number'){
+      if(!day.hasOwnProperty('low') || typeof(day['low']) !== 'number'){
         requestInfo.respond({
-          error: "data['chart'] has no field 'marketHigh' of type 'number'."
+          error: "data has no field 'low' of type 'number'."
         });
         return;
       }
-      if(!day.hasOwnProperty('marketLow') || typeof(day['marketLow']) !== 'number'){
-        requestInfo.respond({
-          error: "data['chart'] has no field 'marketLow' of type 'number'."
-        });
-        return;
-      }
-      requestInfo.respond(Math.round((day["marketHigh"] + day["marketLow"]) / 2 * 1.01 * 100) / 100);
+      requestInfo.respond(Math.round((day["high"] + day["low"]) / 2 * 1.01 * 100) / 100);
     }, error => {
       requestInfo.respond({
         error: error.statusText
@@ -367,45 +327,14 @@ export class MarketService {
     if(symbols.size === 0){
       requestInfo.respond(symbolToPriceMap);
     } else {
-      let url = this.urlH + 'market' + this.urlT + '1d&symbols=';
+      let url = `${environment.marketURL}tops/?token=${environment.marketToken}&symbols=`
       symbols.forEach((symbol) => {
         url += ',' + symbol
       });
       this.http.get(url).subscribe((data: Config) => {
-        if (!data) {
-          requestInfo.respond({
-            error: 'data=' + data
-          });
-          return;
-        }
-        // Iterate over the symbols
-        for (let key in data) {
-          // Found a symbol
-          if (data.hasOwnProperty(key)) {
-            if (!data[key].hasOwnProperty('chart')) {
-              requestInfo.respond({
-                error: "data[" + key + "].hasOwnProperty('chart')=FALSE"
-              });
-              return;
-            }
-            let chart = data[key].chart;
-            if (chart.length === 0) {
-              requestInfo.respond({
-                error: "data[" + key + "].chart.length=0"
-              });
-              return;
-            }
-            let index = data[key].chart.length - 1
-            let latestSnapshot = data[key].chart[index];
-            if (!latestSnapshot.hasOwnProperty('average')) {
-              requestInfo.respond({
-                error: "data[" + key + "].chart[" + index + "].hasOwnProperty('average')=FALSE"
-              });
-              return;
-            }
-            symbolToPriceMap.set(key, data[key].chart[index].average);
-          }
-        }
+        data.forEach((company) => {
+          symbolToPriceMap.set(company.symbol, (company.bidPrice + company.askPrice) / 2);
+        });
         requestInfo.respond(symbolToPriceMap);
       });
     }
@@ -494,12 +423,7 @@ export class CompanyHistory {
       time: string
     }>();
 
-    let fields;
-    if (range == '1Day') {
-      fields = ['marketOpen', 'marketClose', 'marketHigh', 'marketLow', timeKey];
-    } else {
-      fields = ['open', 'close', 'high', 'low', timeKey];
-    }
+    let fields = ['open', 'close', 'high', 'low', timeKey];
 
     for(let i = 0; i < chart.length; i++){
       for(let j = 0; j < fields.length; j++){
@@ -507,23 +431,14 @@ export class CompanyHistory {
           throw new Error(JSON.stringify(chart[i]) + " is missing field '" + fields[j] + "'.");
         }
       }
-      if (range == '1Day') {
-        this.snapshots.push({
-          open: chart[i]['marketOpen'],
-          close: chart[i]['marketClose'],
-          high: chart[i]['marketHigh'],
-          low: chart[i]['marketLow'],
-          time: chart[i][timeKey]
-        });
-      } else {
-        this.snapshots.push({
-          open: chart[i]['open'],
-          close: chart[i]['close'],
-          high: chart[i]['high'],
-          low: chart[i]['low'],
-          time: chart[i][timeKey]
-        });
-      }
+
+      this.snapshots.push({
+        open: chart[i]['open'],
+        close: chart[i]['close'],
+        high: chart[i]['high'],
+        low: chart[i]['low'],
+        time: chart[i][timeKey]
+      });
     }
   }
 }

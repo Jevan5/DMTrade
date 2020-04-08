@@ -59,6 +59,7 @@ export class BuyStockModalComponent{
     this.messages.loading = 'Loading portfolios...';
     this.searchSeqNum++;
     this.portfolioService.requestPortfolios(new RequestInfo(this.searchSeqNum, this, (requestResponse: RequestResponse) => {
+      console.log(requestResponse);
       var self = requestResponse.requestInfo.self;
       // Modal is no longer opened
       if(!self.open){
@@ -99,6 +100,7 @@ export class BuyStockModalComponent{
    * the MarketService for getting the ask price.
    */
   queryAskPriceCallback(requestResponse: RequestResponse) : void {
+    console.log(requestResponse);
     var self = requestResponse.requestInfo.self;
     // Modal is no longer opened
     if(!self.open){

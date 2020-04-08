@@ -4,8 +4,9 @@
 
 export const environment = {
   production: false,
-  dmTradeBackendURL: 'https://www.joshevans.tk:8080/',
-  marketURL: 'https://api.iextrading.com/1.0/stock/'
+  dmTradeBackendURL: 'http://localhost:8013/',
+  marketURL: 'https://cloud.iexapis.com/stable/',
+  marketToken: 'pk_0ad0206c0f9e45d4a363affe9c77e615'
 };
 
 /*
