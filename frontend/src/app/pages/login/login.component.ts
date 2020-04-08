@@ -23,7 +23,7 @@ export class LoginComponent {
 
     config = {};
 
-    constructor(private loginService: LoginService, private router: Router) {
+    constructor(public loginService: LoginService, public router: Router) {
         if (this.loginService.loggedIn && this.loginService.security.getAccount()) {
             this.router.navigate(['']);
         }
@@ -45,7 +45,7 @@ export class LoginComponent {
      * 
      * @param requestResponse Information regarding the response.
      */
-    private loginClickCallback(requestResponse: RequestResponse) : void {
+    public loginClickCallback(requestResponse: RequestResponse) : void {
         var self = requestResponse.requestInfo.self;
         // Problem logging in
         if(requestResponse.response.error){
